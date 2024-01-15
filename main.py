@@ -1,4 +1,5 @@
 import sqlite3
+from windows import login_window
 
 
 def create_profiles_table():
@@ -16,5 +17,8 @@ def create_profiles_table():
 	conn.commit()
 	conn.close()
 
-#create_profiles_table()
+create_profiles_table()
 
+login_window.run()
+
+#TODO fix up homescreen_window and add buttons (this is now delving into new territory; actually making progress here)
