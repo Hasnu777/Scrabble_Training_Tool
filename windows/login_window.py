@@ -1,26 +1,41 @@
 from windows.windowsTemplate import *
 import sqlite3 as sql
 from CTkMessagebox import CTkMessagebox
-#TODO fix positioning of everything inside the window
+#TODO fix the function of the checkbox
 LoggedIn = False
 username = None
 user_id = None
 
 
-logInWindow = App(1280, 720, 'Log In')
-logInWindow.resizable(False, False)
+logInWindow = App(320, 180, 'Log In')
+print('1')
+# logInWindow.resizable(False, False)
 
-logInLabel = Label(logInWindow, row=430, column=20, padx=10, pady=10, text='Welcome. Please enter details.',
+logInFrame = Frame(logInWindow, width=320, height=180, xpos=0, ypos=0)
+logInFrame.configure(border_width=2, border_color='green')
+logInWindow.frames.append(logInFrame)
+print('2')
+
+logInLabel = Label(logInFrame, xpos=3, ypos=5, text='Welcome to the AI Scrabble Trainer 1.0',
 				   font_type='Helvetica', font_size=18)
-logInWindow.labels.append(logInLabel)
+logInFrame.labels.append(logInLabel)
+print('3')
 
-UsernameEntry = EntryBox(logInWindow, row=440, column=60, padx=15, pady=15, placeholder_text='Enter username')
-logInWindow.entries.append(UsernameEntry)
+UsernameEntry = EntryBox(logInFrame, xpos=16, ypos=50, placeholder_text='Enter username...')
+logInFrame.entries.append(UsernameEntry)
 
-PasswordEntry = EntryBox(logInWindow, row=440, column=100, padx=15, pady=15, placeholder_text='Enter password')
+PasswordEntry = EntryBox(logInFrame, xpos=16, ypos=87, placeholder_text='Enter password...')
 PasswordEntry.entry.configure(show='*')
-logInWindow.entries.append(PasswordEntry)
+logInFrame.entries.append(PasswordEntry)
 
+def show_password():
+	if PasswordEntry.entry.cget('show') == '*':
+		PasswordEntry.entry.configure(show='')
+	else:
+		PasswordEntry.entry.configure(show='*')
+
+show_password_entrybox = ctk.CTkCheckBox(logInFrame, border_width=2, onvalue=show_password, offvalue=show_password, text='show password')
+show_password_entrybox.place(x=166, y=87)
 def CreateUser():
 	username = UsernameEntry.entry.get()
 	password = PasswordEntry.entry.get()
@@ -30,8 +45,8 @@ def CreateUser():
 	except sql.IntegrityError:
 		CTkMessagebox(title='Error!', message='Username taken.')
 
-CreateUserButton = Button(logInWindow, row=350, column=160, padx=20, pady=20, onclick=CreateUser)
-logInWindow.entries.append(CreateUserButton)
+CreateUserButton = Button(logInFrame, button_text='Create User', xpos=166, ypos=135, command=CreateUser)
+logInFrame.entries.append(CreateUserButton)
 
 def LogIn():
 	usernameEntered = UsernameEntry.entry.get()
@@ -53,8 +68,8 @@ def LogIn():
 			logInWindow.quit()
 
 
-LogInButton = Button(logInWindow, row=500, column=160, padx=20, pady=20, onclick=LogIn)
-logInWindow.entries.append(LogInButton)
+LogInButton = Button(logInFrame, button_text='Log In', xpos=16, ypos=135, command=LogIn)
+logInFrame.entries.append(LogInButton)
 
 def run():
 	logInWindow.mainloop()
