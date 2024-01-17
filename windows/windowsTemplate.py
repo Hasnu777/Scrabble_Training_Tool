@@ -29,8 +29,11 @@ class Frame(ctk.CTkFrame):
 		self.entries = []
 
 class Button(ctk.CTkButton):
-	def __init__(self, master, button_text='CTkButton', xpos=0, ypos=0, command=None, **kwargs):
-		super().__init__(master=master, command=command, text=button_text, **kwargs)
+	def __init__(self, master, button_text='CTkButton', button_image=None, command=None, xpos=0, ypos=0, width=140, height=28, compound='left', **kwargs):
+		if button_image is None:
+			super().__init__(master=master, command=command, text=button_text, width=width, height=height, **kwargs)
+		else:
+			super().__init__(master=master, command=command, text=button_text, image=button_image, width=width, height=height, compound=compound, **kwargs)
 		self.place(x=xpos, y=ypos)
 
 
