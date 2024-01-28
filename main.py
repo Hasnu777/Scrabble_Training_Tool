@@ -23,5 +23,3 @@ create_profiles_table()
 user_id, username = login_window.run()
 if user_id is not None and username is not None:
     homescreen_window.run()
-
-# TODO fix up homescreen_window and add buttons (this is now delving into new territory; actually making progress here)

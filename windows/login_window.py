@@ -12,7 +12,7 @@ logInWindow.resizable(False, False)
 
 def destroy_logInWindow():
 	logInWindow.quit()
-	#TODO stop the above line from causing error and stopping launch of homescreen_window
+
 
 
 logInWindow.protocol("WM_DELETE_WINDOW", destroy_logInWindow)

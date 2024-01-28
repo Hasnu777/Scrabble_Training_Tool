@@ -5,7 +5,7 @@ from windows import homescreen_window
 
 def destroyNewGameSettingsWindow(window, master):
     window.destroy()
-    homescreen_window.TopFrame.topLevelWindows['newGameSettings']=None
+    homescreen_window.MainFrame.topLevelWindows['newGameSettings'] = None
     unlockFromNewGameSettingsWindow(master)
 
 def unlockFromNewGameSettingsWindow(master):

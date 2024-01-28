@@ -6,7 +6,7 @@ from windows import homescreen_window
 
 def destroyLoadGame(window, master):
     window.destroy()
-    homescreen_window.TopFrame.topLevelWindows['LoadGame']=None
+    homescreen_window.MainFrame.topLevelWindows['LoadGame']=None
     unlockFromLoadGameWindow(master)
 
 def unlockFromLoadGameWindow(master):

@@ -1,20 +1,24 @@
 from windows.windowsTemplate import *
 from windows import homescreen_window
 
+
 def destroyViewRulesWindow(window, master):
     window.destroy()
-    homescreen_window.TopFrame.topLevelWindows['viewRulesWindow']=None
+    homescreen_window.BottomFrame.topLevelWindows['viewRulesWindow'] = None
     unlockFromViewRulesWindow(master)
+
 
 def unlockFromViewRulesWindow(master):
     for frame in master.frames.values():
         for button in frame.buttons.values():
             button.configure(state='normal')
 
+
 def lockToViewRulesWindow(master):
     for frame in master.frames.values():
         for button in frame.buttons.values():
             button.configure(state='disabled')
+
 
 def createViewRulesWindow(master):
     viewRulesWindow = ctk.CTkToplevel(master=master, width=600, height=400)

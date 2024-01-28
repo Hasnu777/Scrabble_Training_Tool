@@ -3,7 +3,7 @@ from windows import homescreen_window
 
 def destroyViewSavedGamesWindow(window, master):
     window.destroy()
-    homescreen_window.TopFrame.topLevelWindows['viewSavedGames']=None
+    homescreen_window.MainFrame.topLevelWindows['viewSavedGames']=None
     unlockFromViewSavedGamesWindow(master)
 
 def unlockFromViewSavedGamesWindow(master):

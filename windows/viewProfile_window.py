@@ -3,7 +3,7 @@ from windows import homescreen_window
 
 def destroyProfileWindow(window, master):
     window.destroy()
-    homescreen_window.TopFrame.topLevelWindows['Profile']=None
+    homescreen_window.TopFrame.topLevelWindows['Profile'] = None
     unlockFromProfileWindow(master)
 
 def unlockFromProfileWindow(master):

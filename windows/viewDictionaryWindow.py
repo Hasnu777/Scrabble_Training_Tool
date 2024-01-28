@@ -4,7 +4,7 @@ from windows import homescreen_window
 
 def destroyViewDictionaryWindow(window, master):
     window.destroy()
-    homescreen_window.TopFrame.topLevelWindows['viewDictionaryWindow'] = None
+    homescreen_window.BottomFrame.topLevelWindows['viewDictionaryWindow'] = None
     unlockFromViewDictionaryWindow(master)
 
 

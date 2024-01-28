@@ -14,12 +14,12 @@ Creating Top Section of Window
 
 
 TopFrame = Frame(master=homescreen, width=1280, height=72, xpos=0, ypos=0, fg_color='green')
-homescreen.frames['TopFrame']=TopFrame
+homescreen.frames['TopFrame'] = TopFrame
 
 UserProfileIconImage = Image.open(os.path.join(os.path.dirname(__file__), 'assets\\UserProfileIcon.png'))
 UserProfileIcon = ctk.CTkImage(light_image=UserProfileIconImage, dark_image=UserProfileIconImage)
 UserProfileIcon.configure(size=(40, 40))
-TopFrame.images['UserProfileIcon']=UserProfileIcon
+TopFrame.images['UserProfileIcon'] = UserProfileIcon
 
 
 def viewProfile():
@@ -31,24 +31,25 @@ TopFrame.topLevelWindows['Profile'] = None
 ProfileButton = Button(master=TopFrame, button_text='View Profile', button_image=UserProfileIcon, width=60, height=60,
                        xpos=3, ypos=3, command=viewProfile, compound="top")
 ProfileButton.configure(font=('Georgia', 8))
-TopFrame.buttons['ProfileButton']=ProfileButton
+TopFrame.buttons['ProfileButton'] = ProfileButton
 
 
 SettingsIconImage = Image.open(os.path.join(os.path.dirname(__file__), 'assets\\SettingsIcon.png'))
 SettingsIcon = ctk.CTkImage(light_image=SettingsIconImage, dark_image=SettingsIconImage)
 SettingsIcon.configure(size=(40, 40))
-TopFrame.images['SettingsIcon']=SettingsIcon
+TopFrame.images['SettingsIcon'] = SettingsIcon
 
 
 def viewSettings():
     if TopFrame.topLevelWindows['Settings'] is None:
         TopFrame.topLevelWindows['Settings'] = mainSettings_window.createSettingsWindow(homescreen)
 
-TopFrame.topLevelWindows['Settings']=None
+
+TopFrame.topLevelWindows['Settings'] = None
 SettingsButton = Button(master=TopFrame, button_text='View Settings', button_image=SettingsIcon, width=60, height=60,
                         xpos=1207, ypos=3, command=viewSettings, compound='top')
 SettingsButton.configure(font=('Georgia', 8))
-TopFrame.buttons['SettingsButton']=SettingsButton
+TopFrame.buttons['SettingsButton'] = SettingsButton
 
 
 
@@ -58,12 +59,13 @@ Creating Main Section of Window
 
 
 MainFrame = Frame(master=homescreen, width=1280, height=576, xpos=0, ypos=73, fg_color='blue')
-homescreen.frames['MainFrame']=MainFrame
+homescreen.frames['MainFrame'] = MainFrame
 
 NewGameSettingsIconImage = Image.open(os.path.join(os.path.dirname(__file__), 'assets\\NewGameSettingsIcon.png'))
 NewGameSettingsImage = ctk.CTkImage(light_image=NewGameSettingsIconImage, dark_image=NewGameSettingsIconImage)
 NewGameSettingsImage.configure(size=(200, 200))
-MainFrame.images['NewGameSettingsIcon']=NewGameSettingsImage
+MainFrame.images['NewGameSettingsIcon'] = NewGameSettingsImage
+
 
 def NewGame():
     if MainFrame.topLevelWindows['newGameSettings'] is None:
@@ -77,7 +79,7 @@ MainFrame.buttons['NewGameSettingsButton'] = newGameSettingsButton
 LoadGameIconImage = Image.open(os.path.join(os.path.dirname(__file__), 'assets\\LoadGameIcon.png'))
 LoadGameIcon = ctk.CTkImage(light_image=LoadGameIconImage, dark_image=LoadGameIconImage)
 LoadGameIcon.configure(size=(200, 200))
-MainFrame.images['LoadGameIcon']=LoadGameIcon
+MainFrame.images['LoadGameIcon'] = LoadGameIcon
 
 
 def LoadGame():
@@ -112,7 +114,8 @@ homescreen.frames['BottomFrame']=BottomFrame
 RulesIconImage = Image.open(os.path.join(os.path.dirname(__file__), 'assets\\RulesIcon.png'))
 RulesIcon = ctk.CTkImage(light_image=RulesIconImage, dark_image=RulesIconImage)
 RulesIcon.configure(size=(40, 40))
-BottomFrame.images['RulesIcon']=RulesIcon
+BottomFrame.images['RulesIcon'] = RulesIcon
+
 
 def viewRules():
     if BottomFrame.topLevelWindows['viewRulesWindow'] is None:
@@ -128,14 +131,15 @@ DictionaryIcon = ctk.CTkImage(light_image=DictionaryIconImage, dark_image=Dictio
 DictionaryIcon.configure(size=(40,40))
 BottomFrame.images['DictionaryIcon']=DictionaryIcon
 
+
 def viewDictionary():
-    if BottomFrame.topLevelWindows['viewDictionary'] is None:
-        BottomFrame.topLevelWindows['viewDictionary'] = viewDictionaryWindow.createViewDictionaryWindow(homescreen)
+    if BottomFrame.topLevelWindows['viewDictionaryWindow'] is None:
+        BottomFrame.topLevelWindows['viewDictionaryWindow'] = viewDictionaryWindow.createViewDictionaryWindow(homescreen)
 
 
-BottomFrame.topLevelWindows['viewDictionary'] = None
+BottomFrame.topLevelWindows['viewDictionaryWindow'] = None
 ViewDictionaryButton = Button(master=BottomFrame, button_text='View Dictionary', button_image=DictionaryIcon, width=60, height=60, xpos=84, ypos=0, command=viewDictionary, compound='top')
-BottomFrame.buttons['ViewDictionaryButton']=ViewDictionaryButton
+BottomFrame.buttons['ViewDictionaryButton'] = ViewDictionaryButton
 
 GameVersion = Label(master=BottomFrame, xpos=1150, ypos=36, text='Version 1.0', font_type='Helvetica', font_size=24, fg_color='blue', text_color='green')
 BottomFrame.labels['GameVersion']=GameVersion
