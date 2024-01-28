@@ -10,10 +10,11 @@ class App(ctk.CTk):
 		self.geometry(f'{width}x{height}')
 		self.resizable(True, True)
 		self.title(title)
-		self.buttons = []
-		self.labels = []
-		self.entries = []
-		self.frames = []
+		self.buttons = {}
+		self.labels = {}
+		self.entries = {}
+		self.frames = {}
+		self.topLevelWindows = {}
 		ctk.set_appearance_mode('System')
 		ctk.set_default_color_theme('dark-blue')
 		if icon is not None:
@@ -24,9 +25,11 @@ class Frame(ctk.CTkFrame):
 	def __init__(self, master, width, height, xpos, ypos, **kwargs):
 		super().__init__(master=master, width=width, height=height, **kwargs)
 		self.place(x=xpos, y=ypos)
-		self.buttons = []
-		self.labels = []
-		self.entries = []
+		self.buttons = {}
+		self.labels = {}
+		self.entries = {}
+		self.images = {}
+		self.topLevelWindows = {}
 
 class Button(ctk.CTkButton):
 	def __init__(self, master, button_text='CTkButton', button_image=None, command=None, xpos=0, ypos=0, width=140, height=28, compound='left', **kwargs):
@@ -38,9 +41,9 @@ class Button(ctk.CTkButton):
 
 
 class Label():
-	def __init__(self, window, xpos=0, ypos=0, text='', font_type='Georgia', font_size=24,
+	def __init__(self, master, xpos=0, ypos=0, text='', font_type='Georgia', font_size=24,
 				 fg_color='transparent', text_color='blue'):
-		self.label = ctk.CTkLabel(window, text=text, font=(font_type, font_size))
+		self.label = ctk.CTkLabel(master=master, text=text, font=(font_type, font_size))
 		self.label.place(x=xpos, y=ypos)
 		self.text = text
 		self.font = (font_type, font_size)

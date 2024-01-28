@@ -1,12 +1,11 @@
 import sqlite3
-from windows import login_window
-
+from windows import homescreen_window, login_window
 
 def create_profiles_table():
-	conn = sqlite3.connect('scrabbleTrainingTool.db')
-	cursor = conn.cursor()
+    conn = sqlite3.connect('scrabbleTrainingTool.db')
+    cursor = conn.cursor()
 
-	cursor.execute('''
+    cursor.execute('''
 		CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			username TEXT NOT NULL UNIQUE,
@@ -14,11 +13,15 @@ def create_profiles_table():
 	)
 	''')
 
-	conn.commit()
-	conn.close()
+    conn.commit()
+    conn.close()
+
 
 create_profiles_table()
 
-login_window.run()
 
-#TODO fix up homescreen_window and add buttons (this is now delving into new territory; actually making progress here)
+user_id, username = login_window.run()
+if user_id is not None and username is not None:
+    homescreen_window.run()
+
+# TODO fix up homescreen_window and add buttons (this is now delving into new territory; actually making progress here)
