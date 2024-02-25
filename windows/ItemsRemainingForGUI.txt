@@ -8,7 +8,7 @@ Key:
 3. Finish functionality of new game window!? [need to have way to make pygame window, unsure if other stuff is required]
 4. Finish functionality of load game window! [need to have games table and sort out the storage of a game]
 5. Finish functionality of saved games window! [same as above]
-6. Finish functionality of rules window
+6. Finish functionality of rules window - COMPLETE
 7. Finish functionality of word list window! [need to put in the word lists, POTENTIALLY word types/definitions/origins]
 8. Create pygame window for the game
 9. Design pygame window
