@@ -3,7 +3,8 @@ from windows import homescreen_window
 import os
 import webbrowser
 
-rules = {'NASPASite': 'https://scrabbleplayers.org/w/Code_of_Conduct', 'WESPAPDF': os.path.join(os.path.dirname(__file__), 'assets\\rules\\wesparulesv4.pdf'), 'FFScSite': 'https://www.ffsc.fr/classique.php?page=reglements', 'FISESite': 'https://fisescrabble.org/reglamentos/'}
+rules = {'NASPASite': 'https://scrabbleplayers.org/w/Code_of_Conduct', 'WESPAPDF': os.path.join(os.path.dirname(__file__),
+																								'../assets\\rules\\wesparulesv4.pdf'), 'FFScSite': 'https://www.ffsc.fr/classique.php?page=reglements', 'FISESite': 'https://fisescrabble.org/reglamentos/'}
 rulesOptions = None
 def destroyViewRulesWindow(window, master):
     window.destroy()
