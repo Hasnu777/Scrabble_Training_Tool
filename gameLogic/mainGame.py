@@ -1,83 +1,112 @@
 import pygame as pg
-import pygame_gui as pgui
-import ScrabbleItemTemplates
+import pygame_gui as py_gui
+from gameLogic import ScrabbleItemTemplates
+from gameLogic.ScrabbleItemTemplates import EnglishLetters, FrenchLetters, SpanishLetters
+import sys
 import os
-from ScrabbleItemTemplates import EnglishLetters, FrenchLetters, SpanishLetters
 
-print(EnglishLetters)
-print(FrenchLetters)
-print(SpanishLetters)
-
-'''PyGame + PyGUI core'''
-pg.init()
-
-pg.display.set_caption('AI Scrabble Trainer')
-gameSurface = pg.display.set_mode((1600, 900))
-
-background = pg.Surface((1600, 900))
-background.fill(pg.Color('#378521'))
-
-manager = pgui.UIManager((1600, 900))
-
-# hello_button = pgui.elements.UIButton(relative_rect=pg.Rect((350, 275), (100, 50)), text='Say Hi', manager=manager)
-
-clock = pg.time.Clock()
-running = True
+'''Game Logic Area'''
 
 
-'''Scrabble related things'''
-
-# Creating tile bag
-language = 'English'  # will be variable taken in from the tkinter window
-
-if language == 'English':
-	tileBag = ScrabbleItemTemplates.Bag(size=100, coordinates=(0, 0))
-	for letter in EnglishLetters.keys():
-		for quantity in EnglishLetters[letter][0]:
-			tileBag.bag.append(
-				ScrabbleItemTemplates.Tile(coordinates=(0, 0), letter=letter, score=EnglishLetters[letter][1]))
-			tileBag.group.append(tileBag.bag[-1])
-
-if language == 'French':
-	tileBag = ScrabbleItemTemplates.Bag(size=102, coordinates=(0, 0))
-	for letter in FrenchLetters.keys():
-		for quantity in FrenchLetters[letter][0]:
-			tileBag.bag.append(
-				ScrabbleItemTemplates.Tile(coordinates=(0, 0), letter=letter, score=FrenchLetters[letter][1]))
-
-if language == 'Spanish':
-	tileBag = ScrabbleItemTemplates.Bag(size=100, coordinates=(0, 0))
-	for letter in SpanishLetters.keys():
-		for quantity in SpanishLetters[letter][0]:
-			tileBag.bag.append(
-				ScrabbleItemTemplates.Tile(coordinates=(0, 0), letter=letter, score=SpanishLetters[letter][1]))
-
-# Creating board
-board = pg.image.load(os.path.join(__file__, '../assets\\images\\GameBoard.png'))
-board = pg.transform.scale(board, (600, 600))
-boardGroup = pg.sprite.Group()
-
-boardGroupSingle = pg.sprite.GroupSingle()
-boardGroupSingle.add(board)
+def createBoard():
+	board = [[] for i in range(15)]
+	boardImage = pg.image.load(
+		os.path.join(os.path.dirname(__file__), '../assets\\images\\GameBoard.png'))
+	boardImage = pg.transform.scale(boardImage, (700, 700))
+	boardGroup = pg.sprite.Group()
+	return board, boardImage, boardGroup
 
 
-while running:
-	time_delta = clock.tick(30)/1000.0
-	for event in pg.event.get():
+def createPlayer1Deck():
+	player1_Deck = []
+	player1_DeckImage = pg.image.load(
+		os.path.join(os.path.dirname(__file__), '../assets\\images\\DeckFront.png'))
+	player1_DeckGroup = pg.sprite.Group()
+	return player1_Deck, player1_DeckImage, player1_DeckGroup
 
-		if event.type == pg.QUIT:
-			running = False
 
-		# if event.type == pgui.UI_BUTTON_PRESSED:
-		# 	if event.ui_element == hello_button:
-		# 		print('Whassup')
+def createPlayer2Deck():
+	player2_Deck = []
+	player2_DeckImage = pg.image.load(
+		os.path.join(os.path.dirname(__file__), '../assets\\images\\DeckBack.png'))
+	player2_DeckGroup = pg.sprite.Group()
+	return player2_Deck, player2_DeckImage, player2_DeckGroup
 
-		manager.process_events(event)
 
-	manager.update(time_delta)
-	gameSurface.draw(boardGroupSingle)
-	gameSurface.blit(background, (0, 0))
-	manager.draw_ui(gameSurface)
-	pg.display.update()
+def fillTileBag(lexicon):
+	tile_bag = []
+	for letter in lexicon.keys():
+		tile_bag.append((ScrabbleItemTemplates.Tile('UserProfileIcon', (0, 0), letter, score=lexicon[letter][0]), lexicon[letter][1]))
+	return tile_bag
 
-pg.quit()
+
+def initialiseTileBag(lang):
+	match lang:
+		case 'English':
+			tile_bag = fillTileBag(EnglishLetters)
+		case 'French':
+			tile_bag = fillTileBag(FrenchLetters)
+		case 'Spanish':
+			tile_bag = fillTileBag(SpanishLetters)
+		case _:
+			tile_bag = fillTileBag(EnglishLetters)
+	tile_bagImage = pg.image.load(os.path.join(os.path.dirname(__file__), '../assets\\images\\TileBag.png'))
+	return tile_bag, tile_bagImage
+
+
+def initialiseEverything():
+	global gameBoard, gameBoardImage, gameBoardGroup
+	gameBoard, gameBoardImage, gameBoardGroup = createBoard()
+
+	global Player1_Deck, Player1_DeckImage, Player1_DeckGroup
+	Player1_Deck, Player1_DeckImage, Player1_DeckGroup = createPlayer1Deck()
+
+	global Player2_Deck, Player2_DeckImage, Player2_DeckGroup
+	Player2_Deck, Player2_DeckImage, Player2_DeckGroup = createPlayer2Deck()
+
+	global tileBag, tileBagImage
+	tileBag, tileBagImage = initialiseTileBag('English')
+
+	startGameWindow()
+
+
+'''PyGame Area'''
+
+
+def startGameWindow():
+	pg.init()
+
+	pg.display.set_caption('Scrabble Tournament Game')
+	gameWindow = pg.display.set_mode((1600, 900))
+
+	background = pg.Surface((1600, 900))
+	background.fill(pg.Color('#654264'))
+
+	UIManager = py_gui.UIManager((1600, 900))
+	clock = pg.time.Clock()
+
+	hello_button = py_gui.elements.UIButton(relative_rect=pg.Rect((350, 275), (100, 50)), text='Say Hi', manager=UIManager)
+
+	running = True
+	while running:
+		time_delta = clock.tick(30) / 1000.0
+		for event in pg.event.get():
+
+			if event.type == pg.QUIT:
+				running = False
+
+			UIManager.process_events(event)
+
+		UIManager.update(time_delta)
+		gameWindow.blit(background, (0, 0))
+		UIManager.draw_ui(gameWindow)
+
+		gameWindow.blit(gameBoardImage.convert_alpha(), (475, 87))
+		gameWindow.blit(tileBagImage.convert_alpha(), (100, 250))
+		gameWindow.blit(Player1_DeckImage.convert_alpha(), (550, 775))
+		gameWindow.blit(Player2_DeckImage.convert_alpha(), (550, 25))
+
+		pg.display.update()
+
+	pg.quit()
+	print('okay game is closed')
