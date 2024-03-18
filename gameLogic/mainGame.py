@@ -2,8 +2,8 @@ import pygame as pg
 import pygame_gui as py_gui
 from gameLogic import ScrabbleItemTemplates
 from gameLogic.ScrabbleItemTemplates import EnglishLetters, FrenchLetters, SpanishLetters
-import sys
 import os
+import random
 
 '''Game Logic Area'''
 
@@ -36,7 +36,7 @@ def createPlayer2Deck():
 def fillTileBag(lexicon):
 	tile_bag = []
 	for letter in lexicon.keys():
-		tile_bag.append((ScrabbleItemTemplates.Tile('UserProfileIcon', (0, 0), letter, score=lexicon[letter][0]), lexicon[letter][1]))
+		tile_bag.append((letter, lexicon[letter][0], lexicon[letter][1]))
 	return tile_bag
 
 
@@ -70,6 +70,24 @@ def initialiseEverything():
 	startGameWindow()
 
 
+# Need to change to for loop, with if statement, so you can iterate coordinates of the tiles. Also need to ensure only
+# one player's tiles are printed out, and this means you gotta make a turn-based thing, so you can alternate between the
+# players. Probably could use a Boolean value and just swap it each round, not sure though. Figure that out I guess.
+def fillDecks():
+	while len(Player1_Deck) < 7:
+		tilePosition = random.randint(0, len(tileBag)-1)
+		if tileBag[tilePosition][2] > 0:
+			Player1_Deck.append(tileBag[tilePosition][0])
+			tileBag[tilePosition] = (tileBag[tilePosition][0], tileBag[tilePosition][1], tileBag[tilePosition][2]-1)
+			Player1_DeckGroup.add(ScrabbleItemTemplates.Tile(f'EnglishLetters\\TILE_{tileBag[tilePosition][0].upper()}', (584, 800), tileBag[tilePosition][0], tileBag[tilePosition][1]))
+	while len(Player2_Deck) < 7:
+		tilePosition = random.randint(0, len(tileBag)-1)
+		if tileBag[tilePosition][2] > 0:
+			Player2_Deck.append(tileBag[tilePosition][0])
+			tileBag[tilePosition] = (tileBag[tilePosition][0], tileBag[tilePosition][1], tileBag[tilePosition][2]-1)
+			Player2_DeckGroup.add(ScrabbleItemTemplates.Tile(f'EnglishLetters\\TILE_{tileBag[tilePosition][0].upper()}', (648, 800), tileBag[tilePosition][0], tileBag[tilePosition][1]))
+
+
 '''PyGame Area'''
 
 
@@ -95,6 +113,10 @@ def startGameWindow():
 			if event.type == pg.QUIT:
 				running = False
 
+			if event.type == py_gui.UI_BUTTON_PRESSED:
+				if event.ui_element == hello_button:
+					fillDecks()
+
 			UIManager.process_events(event)
 
 		UIManager.update(time_delta)
@@ -105,6 +127,9 @@ def startGameWindow():
 		gameWindow.blit(tileBagImage.convert_alpha(), (100, 250))
 		gameWindow.blit(Player1_DeckImage.convert_alpha(), (550, 775))
 		gameWindow.blit(Player2_DeckImage.convert_alpha(), (550, 25))
+
+		Player1_DeckGroup.draw(gameWindow)
+		Player2_DeckGroup.draw(gameWindow)
 
 		pg.display.update()
 

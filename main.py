@@ -1,12 +1,14 @@
 import sqlite3
 from windows import homescreen_window, login_window
 from gameLogic import mainGame
+from gameLogic import mainGameV2
+
 
 def create_profiles_table():
-    conn = sqlite3.connect('scrabbleTrainingTool.db')
-    cursor = conn.cursor()
+	conn = sqlite3.connect('scrabbleTrainingTool.db')
+	cursor = conn.cursor()
 
-    cursor.execute('''
+	cursor.execute('''
 		CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			username TEXT NOT NULL UNIQUE,
@@ -14,16 +16,15 @@ def create_profiles_table():
 	)
 	''')
 
-    conn.commit()
-    conn.close()
+	conn.commit()
+	conn.close()
 
 
 create_profiles_table()
 
-
 user_id, username = login_window.run()
 language = 'English'
 if user_id is not None and username is not None:
-    homescreen_window.run()
-    print('bro.')
-    mainGame.initialiseEverything()
+	homescreen_window.run()
+	print('bro.')
+	mainGameV2.initialiseEverything(language)
