@@ -94,10 +94,10 @@ class Board(pg.sprite.Sprite):
 
 
 class Rack(pg.sprite.Sprite):
-	def __init__(self, coordinates):
+	def __init__(self, coordinates, rackType):
 		super().__init__()
 		self.image = pg.image.load(
-			os.path.join(os.path.dirname(__file__), f'../assets\\images\\DeckFront.png'))
+			os.path.join(os.path.dirname(__file__), f'../assets\\images\\Deck{rackType}.png'))
 		self.rect = self.image.get_rect(topleft=coordinates)
 		self.size = 7
 		self.contents = ['' for i in range(7)]
@@ -130,6 +130,18 @@ class Rack(pg.sprite.Sprite):
 			score = tileBag.bag[letterToDraw][1]
 			self.group.add(Tile(filename, coordinates, letter, score))
 
+	def pickTile(self, language, tileBag):
+		item = random.choice(tileBag.bag[:-1])
+		indexPosition = tileBag.bag.index(item)
+		letter = tileBag.bag[indexPosition][0]
+		return letter
+
+	def updateImage(self, rackType):
+		self.image = pg.image.load(
+			os.path.join(os.path.dirname(__file__), f'../assets\\images\\Deck{rackType}.png'))
+
+	def updateRect(self, coordinates):
+		self.rect = self.rect.move(coordinates[0], coordinates[1])
 
 def fillBag(lexicon):
 	tile_bag = []
@@ -147,6 +159,7 @@ class TileBag(pg.sprite.Sprite):
 		self.bag = []
 		self.language = language
 		self.empty = False
+		self.shuffleCount = 0
 
 		match self.language:
 			case 'English':
@@ -163,11 +176,13 @@ class TileBag(pg.sprite.Sprite):
 				self.alphabet = list(EnglishLetters.keys())
 
 	def shuffleBag(self):
-		lettersInBag = self.bag[:-1]
-		emptyLetters = self.bag[-1]
-		random.shuffle(lettersInBag)
-		self.bag = lettersInBag
-		self.bag.append(emptyLetters)
+		if self.shuffleCount < 2:
+			lettersInBag = self.bag[:-1]
+			emptyLetters = self.bag[-1]
+			random.shuffle(lettersInBag)
+			self.bag = lettersInBag
+			self.bag.append(emptyLetters)
+			self.shuffleCount += 1
 
 	def isEmpty(self):
 		if self.bag[-1] == len(self.bag) - 1:
@@ -175,8 +190,8 @@ class TileBag(pg.sprite.Sprite):
 
 
 class Player:
-	def __init__(self, coordinates):
-		self.rack = Rack(coordinates)
+	def __init__(self, coordinates, rackType):
+		self.rack = Rack(coordinates, rackType)
 		self.score = None
 		self.penalties = 0
 		self.timer = None
@@ -206,3 +221,7 @@ class Score:
 								 24)
 		self.text = self.font.render(f'Score: {self.score}', True, 'white')
 		self.rect = self.text.get_rect(topleft=coordinates)
+
+
+class Button:
+	pass
