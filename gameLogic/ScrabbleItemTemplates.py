@@ -16,6 +16,9 @@ SpanishQuantities = [2, 12, 2, 4, 1, 5, 12, 1, 2, 2, 6, 1, None, 4, 1, 2, 5, 1, 
 SpanishScore = [0, 1, 3, 3, 5, 2, 1, 4, 2, 4, 1, 8, None, 1, 8, 3, 1, 8, 1, 3, 5, 1, 8, 1, 1, 1, 4, None, 8, 4, 10]
 SpanishLetters = {letter: (score, quantity) for letter, score, quantity in zip(AllScrabbleLetters, SpanishScore, SpanishQuantities) if (score is not None and quantity is not None)}
 
+REGULAR_TIME = 1500 # 25 minutes / 1500 seconds
+OVERTIME_TIME = 600 # 10 minutes / 600 seconds
+
 
 class Tile(pg.sprite.Sprite):
 	def __init__(self, filename, coordinates, letter, score):
@@ -174,11 +177,32 @@ class TileBag(pg.sprite.Sprite):
 class Player:
 	def __init__(self, coordinates):
 		self.rack = Rack(coordinates)
-		self.score = 0
+		self.score = None
 		self.penalties = 0
+		self.timer = None
 
 	def getScore(self):
 		return self.score
 
 	def updateScore(self, scoreToAdd):
 		self.score += scoreToAdd
+
+
+class Timer:
+	def __init__(self, initialSeconds, coordinates):
+		self.font = pg.font.Font(os.path.join(os.path.dirname(__file__), '../assets\\Helvetica-Font\\Helvetica.ttf'), 24)
+		self.current_seconds = initialSeconds
+		self.text = self.font.render(f"Time Left: {self.current_seconds // 60:02}:{self.current_seconds % 60:02}", True, 'white')
+		self.rect = self.text.get_rect(topleft=coordinates)
+
+	def updateTimer(self):
+		self.text = self.font.render(f"Time Left: {self.current_seconds // 60:02}:{self.current_seconds % 60:02}", True, 'white')
+
+
+class Score:
+	def __init__(self, coordinates):
+		self.score = 0
+		self.font = pg.font.Font(os.path.join(os.path.dirname(__file__), '../assets\\Helvetica-Font\\Helvetica.ttf'),
+								 24)
+		self.text = self.font.render(f'Score: {self.score}', True, 'white')
+		self.rect = self.text.get_rect(topleft=coordinates)
