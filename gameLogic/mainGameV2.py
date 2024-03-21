@@ -35,10 +35,10 @@ def startGameWindow():
 	UIManager = py_gui.UIManager((1600, 900))
 	clock = pg.time.Clock()
 
-	fillRack_button = py_gui.elements.UIButton(relative_rect=pg.Rect((84, 650), (100, 50)), text='Fill Rack', manager=UIManager) # 84 -> 200
+	fillRack_button = py_gui.elements.UIButton(relative_rect=pg.Rect((84, 650), (100, 50)), text='Fill Rack', manager=UIManager)  # Need to mention ui_button has been edited in the NEA doc
 	fillRack_button.disable()
 
-	shuffleBag_button = py_gui.elements.UIButton(relative_rect=pg.Rect((218, 650), (100, 50)), text='Shuffle', manager=UIManager) # 218 -> 200
+	shuffleBag_button = py_gui.elements.UIButton(relative_rect=pg.Rect((218, 650), (100, 50)), text='Shuffle', manager=UIManager)  # Commented some code in the UIButton class to prevent pygame.USEREVENT usage
 	shuffleBag_button.disable()
 
 	determineOrder_button = py_gui.elements.UIButton(relative_rect=pg.Rect((84, 725), (100, 50)), text='Pick Tile', manager=UIManager)
@@ -64,56 +64,71 @@ def startGameWindow():
 	while running:
 
 		time_delta = clock.tick(30) / 1000.0
-		# IDEA: Put buttons on top of each other: order, shuffle, fill (top -> bottom) then kill as you go
 
+		# If players have picked a tile and determined the order, determineOrder_button is killed & shuffleBag_Button is enabled
 		if orderDetermined:
 			determineOrder_button.kill()
 			shuffleBag_button.enable()
+
+		# If the tile bag has been shuffled, the shuffleBag_button is removed, and fillRack_button & swapTurn_button is enabled
 		if TileBag.shuffleCount >= 2:
 			shuffleBag_button.kill()
 			fillRack_button.enable()
 			swapTurn_button.enable()
 
+		# Going through all events that occur during each tick
 		for event in pg.event.get():
 
 			if event.type == pg.QUIT:
 				running = False
 
+			# if a pygame_gui button has been pressed
 			if event.type == py_gui.UI_BUTTON_PRESSED:
+
+				# if fillRack_button has been pressed
 				if event.ui_element == fillRack_button:
 					Player1.rack.fillRack(TileBag)
 					Player2.rack.fillRack(TileBag)
 					readyToStart = True
 
+				# if shuffleBag_button has been pressed
 				if event.ui_element == shuffleBag_button:
 					TileBag.shuffleBag()
 
+				# if swapTurn_button has been pressed
 				if event.ui_element == swapTurn_button:
 					Player1_Turn = not Player1_Turn
-					if Player1.timer.current_seconds < 1500:
-						Player1.timer.current_seconds += 2
-					if Player2.timer.current_seconds < 1500:
-						Player2.timer.current_seconds += 2
+					# if Player1.timer.current_seconds < 1500:
+					# 	Player1.timer.current_seconds += 2
+					# if Player2.timer.current_seconds < 1500:
+					# 	Player2.timer.current_seconds += 2
 
+				# If determineOrder_button has been pressed
 				if event.ui_element == determineOrder_button:
 					tile1 = ''
 					tile2 = ''
+
+					# picks a random tile, while loop used to ensure the same tile isn't picked.
+					# TODO: check what occurs if the same tile is picked in an actual scrabble game
 					while tile1 == tile2:
 						tile1 = Player1.rack.pickTile(TileBag.language, TileBag)
 						tile2 = Player2.rack.pickTile(TileBag.language, TileBag)
 
+					# If Player1's tile is higher in the alphabet than Player2's tile
 					if TileBag.alphabet.index(tile1) < TileBag.alphabet.index(tile2):
-						orderDetermined = True
 						print(f'no swap occurred: {tile1} v {tile2}')
+
+					# If Player2's tile is higher in the alphabet than Player2's tile, Player1 and Player2 swap
 					else:
 						Player1.rack.image, Player2.rack.image = Player2.rack.image, Player1.rack.image
 						Player1.rack.rect, Player2.rack.rect = Player2.rack.rect, Player1.rack.rect
 						Player1.score, Player2.score = Player2.score, Player1.score
 						Player1.timer, Player2.timer = Player2.timer, Player1.timer
 						Player1, Player2 = Player2, Player1
-						orderDetermined = True
 						print(f'swap occurred: {tile1} v {tile2}')
+					orderDetermined = True
 
+			# Used to decrement the timer
 			if event.type == pg.USEREVENT and readyToStart:
 				if Player1.timer.current_seconds != 0 and Player1_Turn:
 					Player1.timer.current_seconds -= 1
@@ -123,25 +138,35 @@ def startGameWindow():
 					Player2.timer.current_seconds -= 1
 					Player2.timer.updateTimer()
 
+			# if event.type == pg.MOUSEBUTTONDOWN:
+
+			# Processing anything pygame_gui related for the event
 			UIManager.process_events(event)
 
+		# Update game window, draw background, and draw buttons
 		UIManager.update(time_delta)
 		gameWindow.blit(background, (0, 0))
 		UIManager.draw_ui(gameWindow)
 
+
+		# Blit the board and tile bag
 		gameWindow.blit(gameBoard.image.convert_alpha(), (gameBoard.rect.x, gameBoard.rect.y))
 		gameWindow.blit(TileBag.image.convert_alpha(), (TileBag.rect.x, TileBag.rect.y))
 
+		# Blit the rack and tiles for whose turn it is
 		if Player1_Turn:
 			gameWindow.blit(Player1.rack.image.convert_alpha(), (Player1.rack.rect.x, Player1.rack.rect.y))
 			Player1.rack.group.draw(gameWindow)
-			gameWindow.blit(Player1.timer.text, Player1.timer.rect)
-			gameWindow.blit(Player1.score.text, Player1.score.rect)
 		else:
 			gameWindow.blit(Player2.rack.image.convert_alpha(), (Player2.rack.rect.x, Player2.rack.rect.y))
 			Player2.rack.group.draw(gameWindow)
-			gameWindow.blit(Player2.timer.text, Player2.timer.rect)
-			gameWindow.blit(Player2.score.text, Player2.score.rect)
+
+		# Blit the score and timer for both players
+		gameWindow.blit(Player1.timer.text, Player1.timer.rect)
+		gameWindow.blit(Player1.score.text, Player1.score.rect)
+
+		gameWindow.blit(Player2.timer.text, Player2.timer.rect)
+		gameWindow.blit(Player2.score.text, Player2.score.rect)
 
 		pg.display.update()
 

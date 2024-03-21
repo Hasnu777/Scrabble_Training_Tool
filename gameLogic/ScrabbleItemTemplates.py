@@ -101,6 +101,7 @@ class Rack(pg.sprite.Sprite):
 		self.rect = self.image.get_rect(topleft=coordinates)
 		self.size = 7
 		self.contents = ['' for i in range(7)]
+		self.sprites = {'TILE1': None, 'TILE2': None, 'TILE3': None, 'TILE4': None, 'TILE5': None, 'TILE6': None, 'TILE7': None}
 		self.group = pg.sprite.Group()
 
 	def fillRack(self, tileBag):
@@ -128,7 +129,8 @@ class Rack(pg.sprite.Sprite):
 			coordinates = (584+i*64, 798)
 			letter = tileBag.bag[letterToDraw][0]
 			score = tileBag.bag[letterToDraw][1]
-			self.group.add(Tile(filename, coordinates, letter, score))
+			self.sprites[f'TILE{i+1}'] = Tile(filename, coordinates, letter, score)
+			self.group.add(self.sprites[f'TILE{i+1}'])
 
 	def pickTile(self, language, tileBag):
 		item = random.choice(tileBag.bag[:-1])
