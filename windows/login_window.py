@@ -49,7 +49,7 @@ show_password_entrybox.place(x=166, y=87)
 def CreateUser():
 	usernameGiven = UsernameEntry.entry.get()
 	password = PasswordEntry.entry.get()
-
+	idCreated = None
 	if not usernameGiven.isalpha() or not usernameGiven.isalnum():
 		CTkMessagebox(title='Error', message='Invalid username provided.')
 
@@ -58,10 +58,24 @@ def CreateUser():
 			with sql.connect('scrabbleTrainingTool.db') as conn:
 				conn.cursor().execute(
 					f"INSERT INTO users (username, password) VALUES ('{usernameGiven}', '{password}')")
+				# conn.cursor().execute(
+				# 	f'SELECT * FROM users'
+				# )
+				# allFields = conn.cursor().fetchall()
+				# print(allFields, 'allFields')
+				# if len(allFields) == 1:
+				# 	convertToAdmin(username, password)
+
 		except sql.IntegrityError:
 			CTkMessagebox(title='Error!', message='Username taken.')
 	else:
 		CTkMessagebox(title='Error', message='Invalid username provided.')
+
+
+# def convertToAdmin(adminUsername, adminPassword):
+# 	conn = sql.connect('scrabbleTrainingTool.db')
+# 	cursor = conn.cursor()
+# 	cursor.execute('UPDATE users SET id=? WHERE username=? AND password=?', (0, adminUsername, adminPassword))
 
 
 CreateUserButton = Button(logInFrame, button_text='Create User', xpos=166, ypos=135, command=CreateUser)

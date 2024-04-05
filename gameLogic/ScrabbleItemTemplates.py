@@ -16,8 +16,8 @@ SpanishQuantities = [2, 12, 2, 4, 1, 5, 12, 1, 2, 2, 6, 1, None, 4, 1, 2, 5, 1, 
 SpanishScore = [0, 1, 3, 3, 5, 2, 1, 4, 2, 4, 1, 8, None, 1, 8, 3, 1, 8, 1, 3, 5, 1, 8, 1, 1, 1, 4, None, 8, 4, 10]
 SpanishLetters = {letter: (score, quantity) for letter, score, quantity in zip(AllScrabbleLetters, SpanishScore, SpanishQuantities) if (score is not None and quantity is not None)}
 
-REGULAR_TIME = 1500 # 25 minutes / 1500 seconds
-OVERTIME_TIME = 600 # 10 minutes / 600 seconds
+REGULAR_TIME = 1500  # 25 minutes / 1500 seconds
+OVERTIME_TIME = 600  # 10 minutes / 600 seconds
 
 
 class Tile(pg.sprite.Sprite):
@@ -28,6 +28,7 @@ class Tile(pg.sprite.Sprite):
 		self.letter = letter
 		self.score = score
 		self.rect = self.image.get_rect().move(coordinates[0], coordinates[1])
+		self.is_clicked = False
 
 	def updateCoordinates(self, coordinates):
 		self.coordinates = coordinates
@@ -42,7 +43,7 @@ class Tile(pg.sprite.Sprite):
 		return self.score
 
 	def getLetter(self):
-		return self.letter
+		print(self.letter)
 
 	def getRect(self):
 		return self.rect.x, self.rect.y
@@ -114,25 +115,34 @@ class Rack(pg.sprite.Sprite):
 				tileBag.bag[indexPosition] = (letter[0], letter[1], (letter[2]-1))
 				if letter[2] - 1 == 0:
 					tileBag.bag[-1] += 1
-		self.fillRackGroup(tileBag.language, tileBag)
+		self.fillRackGroup(tileBag.language, tileBag, tileBag.lexicon)
 
-	def fillRackGroup(self, language, tileBag):
+	def fillRackGroup(self, language, tileBag, lexicon):
 		self.group.empty()
-		lettersToDraw = ['' for i in range(7)]
-		for idxPosition, letterToFind in enumerate(tileBag.bag[:-1]):
-			for indexPosition, letterTaken in enumerate(self.contents):
-				if letterToFind[0] == letterTaken:
-					lettersToDraw[indexPosition] = idxPosition
+		# lettersToDraw = ['' for i in range(7)]
+		# for idxPosition, letterToFind in enumerate(tileBag.bag[:-1]):
+		# 	for indexPosition, letterTaken in enumerate(self.contents):
+		# 		if letterToFind[0] == letterTaken:
+		# 			lettersToDraw[indexPosition] = idxPosition
+		#
+		# for i, letterToDraw in enumerate(lettersToDraw):
+		# 	if self.sprites[f'TILE{i + 1}'] is None:
+		# 		filename = f'{language}\\TILE_{tileBag.bag[letterToDraw][0]}.png'
+		# 		coordinates = (584+i*64, 798)
+		# 		letter = tileBag.bag[letterToDraw][0]
+		# 		score = tileBag.bag[letterToDraw][1]
+		# 		self.sprites[f'TILE{i+1}'] = Tile(filename, coordinates, letter, score)
+		# 	self.group.add(self.sprites[f'TILE{i+1}'])
 
-		for i, letterToDraw in enumerate(lettersToDraw):
-			filename = f'{language}Letters\\TILE_{tileBag.bag[letterToDraw][0]}.png'
-			coordinates = (584+i*64, 798)
-			letter = tileBag.bag[letterToDraw][0]
-			score = tileBag.bag[letterToDraw][1]
-			self.sprites[f'TILE{i+1}'] = Tile(filename, coordinates, letter, score)
+		for i, letter in enumerate(self.contents):
+			if self.sprites[f'TILE{i + 1}'] is None:
+				filename = f'{language}Letters\\TILE_{letter}.png'
+				coordinates = (584+i*64, 798)
+				score = lexicon[letter][0]
+				self.sprites[f'TILE{i+1}'] = Tile(filename, coordinates, letter, score)
 			self.group.add(self.sprites[f'TILE{i+1}'])
 
-	def pickTile(self, language, tileBag):
+	def pickTile(self, tileBag):
 		item = random.choice(tileBag.bag[:-1])
 		indexPosition = tileBag.bag.index(item)
 		letter = tileBag.bag[indexPosition][0]
@@ -144,6 +154,7 @@ class Rack(pg.sprite.Sprite):
 
 	def updateRect(self, coordinates):
 		self.rect = self.rect.move(coordinates[0], coordinates[1])
+
 
 def fillBag(lexicon):
 	tile_bag = []
@@ -167,15 +178,19 @@ class TileBag(pg.sprite.Sprite):
 			case 'English':
 				self.bag = fillBag(EnglishLetters)
 				self.alphabet = list(EnglishLetters.keys())
+				self.lexicon = EnglishLetters
 			case 'French':
 				self.bag = fillBag(FrenchLetters)
 				self.alphabet = list(FrenchLetters.keys())
+				self.lexicon = FrenchLetters
 			case 'Spanish':
 				self.bag = fillBag(SpanishLetters)
 				self.alphabet = list(SpanishLetters.keys())
+				self.lexicon = SpanishLetters
 			case _:
 				self.bag = fillBag(EnglishLetters)
 				self.alphabet = list(EnglishLetters.keys())
+				self.lexicon = EnglishLetters
 
 	def shuffleBag(self):
 		if self.shuffleCount < 2:
@@ -227,3 +242,30 @@ class Score:
 
 class Button:
 	pass
+
+
+'''
+	Need to transfer the moved tile into the board. Here's how:
+		1. create rects of each square in the board ✅
+		2. check for collision between rect and mouse ✅
+		3. get rect coords, use some maths formula to find its row & column on the board ✅
+		4. put tile letter into row & column in board list ✅
+		5. transfer tile sprite from rack sprites dict to board group ✅
+		6. transform tile sprite image and rect, set its coords to coords of rect the mouse clicked on ✅
+		7. In step 4, need to collect tile info to see if it's a special location ✅
+	In the event the tile is invalid, will have to undo each tile placement. Use a stack, that'll get you marks.
+	See if you can get the stack to be used recursively, that'll get you even more marks.
+
+	Question: should i add tiles to intermediate group? I have damissGroup and damissterGroup as intermediaries, but I'm
+	not sure if I should do this. Might ruin the stack thing, I don't know. Might get marks tho for good data handling?
+	Check feasibility of doing this without one, then if it's too hard or annoying just add intermediaries. I don't know
+	how this intermediary thing would work to actually scan/validate the board though, maybe copy the board and insert
+	tiles there? Then if validation passes just overwrite board with this updated copy. Yeah that works actually, nice.
+	'''
+
+'''
+Need to validate board. How? prolly do checking vertically and then horizontally, creating words as you scan.
+If invalid word found, reject turn. Would have to check each word against words database (need to find that, uh oh).
+If all valid, calculate score I guess. Need to figure out how that works:
+	For double/triple letter I'd need to find the letter it corresponds to, triple/double word acts on the word.
+'''

@@ -81,6 +81,7 @@ def startGameWindow():
 
 			if event.type == pg.QUIT:
 				running = False
+				break
 
 			# if a pygame_gui button has been pressed
 			if event.type == py_gui.UI_BUTTON_PRESSED:
@@ -98,21 +99,17 @@ def startGameWindow():
 				# if swapTurn_button has been pressed
 				if event.ui_element == swapTurn_button:
 					Player1_Turn = not Player1_Turn
-					# if Player1.timer.current_seconds < 1500:
-					# 	Player1.timer.current_seconds += 2
-					# if Player2.timer.current_seconds < 1500:
-					# 	Player2.timer.current_seconds += 2
 
 				# If determineOrder_button has been pressed
 				if event.ui_element == determineOrder_button:
 					tile1 = ''
 					tile2 = ''
 
-					# picks a random tile, while loop used to ensure the same tile isn't picked.
+					# Picks a random tile, while loop used to ensure the same tile isn't picked.
 					# TODO: check what occurs if the same tile is picked in an actual scrabble game
 					while tile1 == tile2:
-						tile1 = Player1.rack.pickTile(TileBag.language, TileBag)
-						tile2 = Player2.rack.pickTile(TileBag.language, TileBag)
+						tile1 = Player1.rack.pickTile(TileBag)
+						tile2 = Player2.rack.pickTile(TileBag)
 
 					# If Player1's tile is higher in the alphabet than Player2's tile
 					if TileBag.alphabet.index(tile1) < TileBag.alphabet.index(tile2):
@@ -138,7 +135,47 @@ def startGameWindow():
 					Player2.timer.current_seconds -= 1
 					Player2.timer.updateTimer()
 
-			# if event.type == pg.MOUSEBUTTONDOWN:
+			if event.type == pg.MOUSEBUTTONDOWN:
+
+				mouse_pos = pg.mouse.get_pos()
+				print(mouse_pos)
+				if Player1_Turn:
+					for i, tile in enumerate(Player1.rack.sprites.values()):
+						if tile is not None:
+							if tile.rect.collidepoint(mouse_pos):
+								tile.is_clicked = True
+								Player1.rack.contents[i] = ''
+								print(i, end=' ')
+								Player1.rack.sprites[f'TILE{i+1}'].getLetter()
+								Player1.rack.sprites[f'TILE{i + 1}'] = None
+								continue
+							print(i, end=' ')
+							Player1.rack.sprites[f'TILE{i+1}'].getLetter()
+				else:
+					for i, tile in enumerate(Player2.rack.sprites.values()):
+						if tile is not None:
+							if tile.rect.collidepoint(mouse_pos):
+								tile.is_clicked = True
+								Player2.rack.sprites[f'TILE{i + 1}'] = None
+
+			if event.type == pg.MOUSEBUTTONUP:
+
+				mouse_pos = pg.mouse.get_pos()
+
+				if Player1_Turn:
+					for tile in Player1.rack.sprites.values():
+						if tile is not None:
+							if tile.is_clicked:
+								tile.rect.move(mouse_pos[0], mouse_pos[1])
+								tile.coordinates = mouse_pos
+								tile.is_clicked = False
+				else:
+					for tile in Player2.rack.sprites.values():
+						if tile is not None:
+							if tile.is_clicked:
+								tile.rect.move(mouse_pos[0], mouse_pos[1])
+								tile.coordinates = mouse_pos
+								tile.is_clicked = False
 
 			# Processing anything pygame_gui related for the event
 			UIManager.process_events(event)
@@ -147,7 +184,6 @@ def startGameWindow():
 		UIManager.update(time_delta)
 		gameWindow.blit(background, (0, 0))
 		UIManager.draw_ui(gameWindow)
-
 
 		# Blit the board and tile bag
 		gameWindow.blit(gameBoard.image.convert_alpha(), (gameBoard.rect.x, gameBoard.rect.y))
