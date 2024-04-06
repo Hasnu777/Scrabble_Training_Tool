@@ -110,7 +110,7 @@ class Rack(pg.sprite.Sprite):
 		super().__init__()
 		self.__image = pg.image.load(os.path.join(os.path.dirname(__file__), f'../assets\\images\\DeckFront.png'))
 		self.__rect = self.__image.get_rect(topleft=coordinates)
-		self.__contents = ['' for i in range(7)]
+		self.__contents = ['' for _ in range(7)]
 		self.__sprites = {'TILE1': None, 'TILE2': None, 'TILE3': None, 'TILE4': None, 'TILE5': None, 'TILE6': None, 'TILE7': None}
 		self.__group = pg.sprite.Group()
 
@@ -137,12 +137,12 @@ class Rack(pg.sprite.Sprite):
 				if letter[2] - 1 == 0:
 					tileBag.bag[-1] += 1
 
-	def fillRackGroup(self, language, lexicon):
+	def fillRackGroup(self, language, lexicon, coords):
 		self.__group.empty()
 		for i, letter in enumerate(self.__contents):
-			if self.__sprites[f'TILE{i+1}'] is None:
+			if self.__sprites[f'TILE{i+1}'] is None and letter != '':
 				filename = f'{language}Letters\\TILE_{letter}.png'
-				coordinates = (584+i*64, 798)
+				coordinates = (coords[0]+i*64, coords[1])
 				score = lexicon[letter][0]
 				self.__sprites[f'TILE{i+1}'] = Tile(filename, coordinates, letter, score)
 			self.__group.add(self.__sprites[f'TILE{i+1}'])
@@ -162,7 +162,6 @@ class Rack(pg.sprite.Sprite):
 	def updateSprites(self, sprites):
 		self.__sprites = sprites
 
-
 	def removeFromRack(self, position, tile):
 		self.__contents[position] = ''
 		self.__sprites[f'TILE{position+1}'] = None
@@ -172,6 +171,23 @@ class Rack(pg.sprite.Sprite):
 		self.__contents[position] = tile.getLetter()
 		self.__sprites[f'TILE{position+1}'] = tile
 		self.__group.add(tile)
+
+	def isEmpty(self):
+		return self.__contents.count('') == 7
+
+	def alterSprites(self):
+		self.__group.empty()
+		for i in range(7):
+			tile = self.__sprites[f'TILE{i+1}']
+			if tile is not None:
+				self.__sprites[f'TILE{i+1}'] = tile.updateRect((1084+i*64, 798))
+				self.__group.add(tile)
+
+	def getTotalScore(self, lexicon):
+		score = 0
+		for letter in self.__contents:
+			score += lexicon[letter][0]
+		return 2 * score
 
 
 def fillBag(lexicon):
@@ -261,7 +277,7 @@ class Player:
 
 class Timer:
 	def __init__(self, initialSeconds, coordinates):
-		self.font = pg.font.Font(os.path.join(os.path.dirname(__file__), '../assets\\Helvetica-Font\\Helvetica.ttf'),24)
+		self.font = pg.font.Font(os.path.join(os.path.dirname(__file__), '../assets\\Helvetica-Font\\Helvetica.ttf'), 24)
 		self.current_seconds = initialSeconds
 		self.text = self.font.render(f"Time Left: {self.current_seconds // 60:02}:{self.current_seconds % 60:02}", True, 'white')
 		self.__rect = self.text.get_rect(topleft=coordinates)
@@ -289,6 +305,7 @@ class Score:
 
 	def updateScore(self, score):
 		self.__score += score
+		self.updateText()
 
 	def updateRect(self, coordinates):
 		self.__rect.move(coordinates[0], coordinates[1])
@@ -296,8 +313,8 @@ class Score:
 	def getRectCoordinates(self):
 		return self.__rect.x, self.__rect.y
 
-	def unknown(self):
-		pass
+	def updateText(self):
+		self.text = self.font.render(f'Score: {self.__score}', True, 'white')
 
 
 class Text:  # Turn this into square, and alter it so if a tile is passed in then that gets put in I guess, smth like that
@@ -329,29 +346,3 @@ class Square:
 
 	def getType(self):
 		return self.squareType
-
-
-'''
-1. removed from sprites list for rack
-2. removed from contents of rack
-3. square scanned for specialLocation (which is extracted)
-4. tile letter enters square
-5. tile Rect updated to Square Rect
-6. tile image resized
-7. tile sprite replaces Square in board.squares
-8. tile added to board group
-9. tile sprite is in board.squares, but because it isn't a Square object it's ignored when blitting the Squares
-
-Steps to undo a move:
-1. remove tile from board group
-2. replace tile sprite with Square (need to access row & column, rect of tile, and use specialLocation to create Square)
-3. update tile rect back to original position (can calculate with rackPosition)
-4. resize tile image back to OG size (go find what this is, i think it's 48x48 but i can't remember)
-5. replace tile letter with specialLocation
-6. add tile letter into rack contents
-7. add tile sprite back to sprites list for rack
-8. repeat for each tile placed
-
-Note: bc you need row & column, put that into stack. DO NOT FORGET THIS.
-'''
-

@@ -31,6 +31,7 @@ class Frame(ctk.CTkFrame):
 		self.images = {}
 		self.topLevelWindows = {}
 
+
 class Button(ctk.CTkButton):
 	def __init__(self, master, button_text='CTkButton', button_image=None, command=None, xpos=0, ypos=0, width=140, height=28, compound='left', **kwargs):
 		if button_image is None:
@@ -40,9 +41,8 @@ class Button(ctk.CTkButton):
 		self.place(x=xpos, y=ypos)
 
 
-class Label():
-	def __init__(self, master, xpos=0, ypos=0, text='', font_type='Georgia', font_size=24,
-				 fg_color='transparent', text_color='blue'):
+class Label:
+	def __init__(self, master, xpos=0, ypos=0, text='', font_type='Georgia', font_size=24, fg_color='transparent', text_color='blue'):
 		self.label = ctk.CTkLabel(master=master, text=text, font=(font_type, font_size))
 		self.label.place(x=xpos, y=ypos)
 		self.text = text
@@ -54,12 +54,12 @@ class Label():
 		self.label.configure(text=self.text, text_color=self.text_color, font=self.font)
 
 
-class EntryBox():
+class EntryBox:
 	def __init__(self, window, placeholder_text='Enter text', xpos=0, ypos=0):
 		self.entry = ctk.CTkEntry(window, placeholder_text=placeholder_text)
 		self.entry.place(x=xpos, y=ypos)
 
 
-class MessageBox():
+class MessageBox:
 	def __init__(self, title='Message', message='you\'re a lil bit silly mate'):
 		self.messagebox = CTkMessagebox.CTkMessagebox(title=title, message=message)

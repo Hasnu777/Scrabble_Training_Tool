@@ -1,7 +1,7 @@
 import sqlite3
 
 from gameLogic import mainGameV3
-from windows import homescreen_window, login_window
+from windows import homescreen_window, login_window, createNewGameSettings
 
 
 def create_profiles_table():
@@ -77,5 +77,5 @@ language = 'English'
 if user_id is not None and username is not None:
 	homescreen_window.run()
 	print('bro.')
-	# mainGameV2.initialiseEverything(language)
-	mainGameV3.createGameWindow(language)
+	if createNewGameSettings.lang is not None:
+		mainGameV3.createGameWindow(createNewGameSettings.lang, user_id)

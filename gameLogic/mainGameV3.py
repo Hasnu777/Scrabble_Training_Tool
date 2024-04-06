@@ -100,14 +100,9 @@ def moveTile(board, row, column, tile, stack):
 
 def checkTurn(gameBoard, stack, language, alphabet, firstTurn, wordsPlayed):
     validPlay = False
-    if firstTurn:
-        for move in stack:
-            validPlay = (move[1].getRectCoordinates() != (784, 394))
-        if not validPlay:
-            return validPlay, []
 
     board = gameBoard.getBoard()
-    wordsOnBoard = []
+    wordsOnBoard = [[], []]
     wordsInRow = ''
     for row in board:
         for letter in row:
@@ -116,17 +111,17 @@ def checkTurn(gameBoard, stack, language, alphabet, firstTurn, wordsPlayed):
             else:
                 if language == 'English':
                     if len(wordsInRow) > 1 and wordsInRow not in ('RR', 'LL'):
-                        wordsOnBoard.append(wordsInRow)
+                        wordsOnBoard[0].append(wordsInRow)
                 else:
                     if len(wordsInRow) > 1 and wordsInRow not in ('CH', 'RR', 'LL'):
-                        wordsOnBoard.append(wordsInRow)
+                        wordsOnBoard[0].append(wordsInRow)
                 wordsInRow = ''
     if language == 'English':
         if len(wordsInRow) > 1 and wordsInRow not in ('RR', 'LL'):
-            wordsOnBoard.append(wordsInRow)
+            wordsOnBoard[0].append(wordsInRow)
     else:
         if len(wordsInRow) > 1 and wordsInRow not in ('CH', 'RR', 'LL'):
-            wordsOnBoard.append(wordsInRow)
+            wordsOnBoard[0].append(wordsInRow)
     wordsInColumn = ''
 
     for column in range(15):
@@ -136,27 +131,58 @@ def checkTurn(gameBoard, stack, language, alphabet, firstTurn, wordsPlayed):
             else:
                 if language == 'English':
                     if len(wordsInColumn) > 1 and wordsInColumn not in ('RR', 'LL'):
-                        wordsOnBoard.append(wordsInColumn)
+                        wordsOnBoard[1].append(wordsInColumn)
                 else:
                     if len(wordsInColumn) > 1 and wordsInColumn not in ('CH', 'RR', 'LL'):
-                        wordsOnBoard.append(wordsInColumn)
+                        wordsOnBoard[1].append(wordsInColumn)
                 wordsInColumn = ''
         if language == 'English':
             if len(wordsInColumn) > 1 and wordsInColumn not in ('RR', 'LL'):
-                wordsOnBoard.append(wordsInColumn)
+                wordsOnBoard[1].append(wordsInColumn)
         else:
             if len(wordsInColumn) > 1 and wordsInColumn not in ('CH', 'RR', 'LL'):
-                wordsOnBoard.append(wordsInColumn)
+                wordsOnBoard[1].append(wordsInColumn)
         wordsInColumn = ''
 
-    wordsCreated = []
-    print(wordsOnBoard, 'wordsOnBoard')
-    print(wordsPlayed, 'wordsPlayed')
-    for word in wordsOnBoard:
-        if wordsOnBoard.count(word) > wordsPlayed.count(word):
-            for i in range(wordsOnBoard.count(word)-wordsPlayed.count(word)):
-                wordsCreated.append(word)
+    wordsCreated = [[], []]
+
+    for word in wordsOnBoard[0]:
+        if wordsOnBoard[0].count(word) > wordsPlayed[0].count(word):
+            for i in range(wordsOnBoard[0].count(word)-wordsPlayed[0].count(word)):
+                wordsCreated[0].append(word)
+
+    for word in wordsOnBoard[1]:
+        if wordsOnBoard[1].count(word) > wordsPlayed[1].count(word):
+            for i in range(wordsOnBoard[1].count(word)-wordsPlayed[1].count(word)):
+                wordsCreated[1].append(word)
+
+    # old code below
+
+    # print(wordsOnBoard, 'wordsOnBoard')
+    # print(wordsPlayed, 'wordsPlayed')
+    # for word in wordsOnBoard:
+    #     if wordsOnBoard.count(word) > wordsPlayed.count(word):
+    #         for i in range(wordsOnBoard.count(word)-wordsPlayed.count(word)):
+    #             wordsCreated.append(word)
     print(wordsCreated, 'wordsCreated')
+
+    if firstTurn:
+        if not (len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0):
+            print('tis the first turn')
+            for move in stack:
+                print(move[1].getRectCoordinates(), 'rect coords')
+                validPlay = (move[1].getRectCoordinates() == (784, 394))
+                print(validPlay, 'for tile on center square')
+                if validPlay:
+                    print('tile detected on center square')
+                    break
+            if not validPlay:
+                print('no tile detected on center square')
+                print(validPlay, 'for valid play now')
+                return validPlay, []
+        else:
+            validPlay = True
+
     return validPlay, wordsCreated
 
 
@@ -200,15 +226,16 @@ def undoMove(board, stack, PlayerTurn, Player1, Player2):
 def checkWords(wordsToCheck, language):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), '../word_lists.db'))
     cursor = conn.cursor()
-    for word in wordsToCheck:
-        print(word)
-        cursor.execute(f'SELECT words FROM {language}Words WHERE words=?', (word,))
-        wordFetched = cursor.fetchone()
-        print(wordFetched)
-        if wordFetched is None:
-            return False
-        if word != wordFetched[0]:
-            return False
+    for row in wordsToCheck:  # new for loop to handle wordsToCheck being a 2D array
+        for word in row:
+            print(word)
+            cursor.execute(f'SELECT words FROM {language}Words WHERE words=?', (word,))
+            wordFetched = cursor.fetchone()
+            print(wordFetched)
+            if wordFetched is None:
+                return False
+            if word != wordFetched[0]:
+                return False
     return True
 
 
@@ -258,7 +285,7 @@ def exchangeTile(player, tileToExchange, tileToExchangePosition, tileBag):
     print(tileBag.bag[newTileInfoPosition])
     tileBag.bag[newTileInfoPosition] = newTileInfo
     player.rack.fillRack(tileBag)
-    player.rack.fillRackGroup(tileBag.getLanguage(), tileBag.lexicon)
+    player.rack.fillRackGroup(tileBag.getLanguage(), tileBag.lexicon, (584, 798))
     spritesList = player.rack.getSprites()
     newTile = spritesList[f'TILE{tileToExchangePosition+1}']
     print(newTile.getLetter(), 'newTile that was put into rack')
@@ -268,21 +295,111 @@ def exchangeTile(player, tileToExchange, tileToExchangePosition, tileBag):
     return player, tileBag, False
 
 
-def verifyAdminPassword(password):
+def verifyAdminPassword(password, IDToUse):
     conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), '../scrabbleTrainingTool.db'))
     cursor = conn.cursor()
-    cursor.execute('SELECT password FROM users WHERE id=1')
+    cursor.execute('SELECT password FROM users WHERE id=?', (IDToUse,))
     daPassword = cursor.fetchone()
     print(daPassword)
     if password == daPassword[0]:
         return True
 
 
-def calculateScore():
-    pass
+def calculateScore(wordsCreated, movesMade, lexicon):  # (rackPosition, tile, squareType, square, row, column)
+    wordsInRow = wordsCreated[0]
+    wordsInColumn = wordsCreated[1]
+    wordsInRowAndScores = []
+    wordsInColumnAndScores = []
+    score = 0
+
+    for word in wordsInRow:
+        for letter in word:
+            score += lexicon[letter][0]
+        wordsInRowAndScores.append((word, score))
+        score = 0
+    print(wordsInRowAndScores, 'row&score initial formation')
+
+    for word in wordsInColumn:
+        for letter in word:
+            score += lexicon[letter][0]
+        wordsInColumnAndScores.append((word, score))
+        score = 0
+    print(wordsInColumnAndScores, 'column&score initial formation')
+
+    for move in movesMade:
+        for i, wordAndScore in enumerate(wordsInRowAndScores):
+            if move[1].getLetter() in wordAndScore[0] and move[1].getScore() == 0:
+                wordsInRowAndScores[i] = (wordAndScore[0], (wordAndScore[1]-lexicon[move[1].getLetter()][0]))
+    print(wordsInRowAndScores, 'row&score after clearing blanks')
+
+    for move in movesMade:
+        for i, wordAndScore in enumerate(wordsInRowAndScores):
+            if move[1].getLetter() in wordAndScore[0]:
+                match move[2]:
+                    case 'DL':
+                        wordsInRowAndScores[i] = (wordAndScore[0], (wordAndScore[1] + move[1].getScore()))
+                    case 'TL':
+                        wordsInRowAndScores[i] = (wordAndScore[0], (wordAndScore[1] + 2*move[1].getScore()))
+                    case _:
+                        continue
+    print(wordsInRowAndScores, 'row&score after letter multipliers')
+
+    for move in movesMade:
+        for i, wordAndScore in enumerate(wordsInRowAndScores):
+            if move[1].getLetter() in wordAndScore[0]:
+                match move[2]:
+                    case 'DW':
+                        wordsInRowAndScores[i] = (wordAndScore[0], (wordAndScore[1] * 2))
+                    case 'TW':
+                        wordsInRowAndScores[i] = (wordAndScore[0], (wordAndScore[1] * 3))
+                    case _:
+                        continue
+    print(wordsInRowAndScores, 'row&score after word multipliers')
+
+    for move in movesMade:
+        for i, wordAndScore in enumerate(wordsInColumnAndScores):
+            if move[1].getLetter() in wordAndScore[0] and move[1].getScore() == 0:
+                wordsInColumnAndScores[i] = (wordAndScore[0], (wordAndScore[1] - lexicon[move[1].getLetter()][0]))
+    print(wordsInColumnAndScores, 'column&score after clearing blanks')
+    for move in movesMade:
+        for i, wordAndScore in enumerate(wordsInColumnAndScores):
+            if move[1].getLetter() in wordAndScore[0]:
+                match move[2]:
+                    case 'DL':
+                        wordsInColumnAndScores[i] = (wordAndScore[0], (wordAndScore[1] + move[1].getScore()))
+                    case 'TL':
+                        wordsInColumnAndScores[i] = (wordAndScore[0], (wordAndScore[1] + 2 * move[1].getScore()))
+                    case _:
+                        continue
+    print(wordsInColumnAndScores, 'column&score after letter multipliers')
+    for move in movesMade:
+        for i, wordAndScore in enumerate(wordsInColumnAndScores):
+            if move[1].getLetter() in wordAndScore[0]:
+                match move[2]:
+                    case 'DW':
+                        wordsInColumnAndScores[i] = (wordAndScore[0], (wordAndScore[1] * 2))
+                    case 'TW':
+                        wordsInColumnAndScores[i] = (wordAndScore[0], (wordAndScore[1] * 3))
+                    case _:
+                        continue
+    print(wordsInColumnAndScores, 'column&score after word multipliers')
+    for wordAndScore in wordsInRowAndScores:
+        score += wordAndScore[1]
+
+    for wordAndScore in wordsInColumnAndScores:
+        score += wordAndScore[1]
+
+    return score
 
 
-def createGameWindow(language):
+def applyTimePenalties(player):
+    if player.timer.isOvertime:
+        scoreToRemove = -10 * (10 - player.timer.current_seconds // 60)
+        player.score.updateScore(scoreToRemove)
+    return player
+
+
+def createGameWindow(language, adminID):
 
     pg.init()
 
@@ -331,11 +448,12 @@ def createGameWindow(language):
     blankTileClicked = False
     exchangeOccurring = False
     consecutiveZeroPointPlays = 0
+    finalScoresAndPenaltiesApplied = False
 
     getLetterToReplace = py_gui.elements.UIWindow(pg.Rect(1210, 338, 400, 300), manager=UIManager, window_display_title='New Letter?')
     getLetterToReplace.hide()
 
-    selectLetterToReplace = py_gui.elements.ui_drop_down_menu.UIDropDownMenu(options_list=TileBag.alphabet[1:], starting_option='A', relative_rect=pg.Rect((1210, 338), (50, 20)), manager=UIManager)
+    selectLetterToReplace = py_gui.elements.ui_drop_down_menu.UIDropDownMenu(options_list=TileBag.alphabet[1:], starting_option='A', relative_rect=pg.Rect((350, 338), (50, 20)), manager=UIManager)
     selectLetterToReplace.hide()
 
     getAdminPassword = py_gui.elements.ui_text_entry_line.UITextEntryLine(relative_rect=pg.Rect((1250, 400), (200, 30)), manager=UIManager)
@@ -346,13 +464,14 @@ def createGameWindow(language):
     enterAdminPassword.hide()
 
     gameOver = False
-
+    revealOtherRack = False
+    spritesAltered = False
     # getLetterToReplace = py_gui.elements.UIWindow(pg.Rect(SCREEN_WIDTH/2-200, SCREEN_HEIGHT/2-150, 400, 300), manager=UIManager, window_display_title='WARNING')
 
     invalidPlayWarning = ScrabbleItemTemplatesV2.Text((1210, 338), (200, 100), 'Invalid Play. Try again.')
 
     movesMade = []  # stack :D
-    wordsPlayed = []
+    wordsPlayed = [[], []]
 
     Player1TileClicked = False
     Player2TileClicked = False
@@ -386,39 +505,62 @@ def createGameWindow(language):
         for event in pg.event.get():
 
             if consecutiveZeroPointPlays == 6 or gameOver:
+                revealOtherRack = True
+                if Player1_Turn and not spritesAltered:
+                    Player2.rack.alterSprites()
+                    # Player2.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon, (1194, 323))
+                    spritesAltered = True
+                elif not Player1_Turn and not spritesAltered:
+                    Player1.rack.alterSprites()
+                    # Player1.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon, (1194, 323))
+                    spritesAltered = True
+                if not finalScoresAndPenaltiesApplied:
+                    Player1 = applyTimePenalties(Player1)
+                    Player2 = applyTimePenalties(Player2)
+                    if Player1.timer.current_seconds == 0 and Player1.score.isOvertime:
+                        scoreDiff = Player1.score.getScore() - Player2.score.getScore()
+                        if scoreDiff > -1:
+                            Player2.score.updateScore(scoreDiff+1)
+                    if Player2.timer.current_seconds == 0 and Player2.score.isOvertime:
+                        scoreDiff = Player2.score.getScore() - Player1.score.getScore()
+                        if scoreDiff > -1:
+                            Player2.score.updateScore(scoreDiff+1)
+                if event.type == pg.KEYDOWN or event.type == pg.KEYUP:
+                    getAdminPassword.set_text_hidden()
                 if getAdminPassword.is_enabled == 0:
                     getAdminPassword.show()
                     getAdminPassword.enable()
                     enterAdminPassword.show()
+                    enterAdminPassword.enable()
                     print('enabled da password ting')
                 if event.type == pg.QUIT:
                     if getAdminPassword.is_enabled == 0:
                         getAdminPassword.show()
                         getAdminPassword.enable()
+                        getAdminPassword.set_text_hidden()
 
                 if event.type == py_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == enterAdminPassword:
                         print('button has been pressed')
-                        correctPasswordEntered = verifyAdminPassword(getAdminPassword.get_text())
+                        correctPasswordEntered = verifyAdminPassword(getAdminPassword.get_text(), adminID)
                         if correctPasswordEntered:
                             running = False
                             break
-
-                if event.type == py_gui.UI_TEXT_ENTRY_FINISHED:
-                    correctPasswordEntered = verifyAdminPassword(getAdminPassword.get_text())
-                    if correctPasswordEntered:
-                        running = False
-                        break
+                # if event.type == py_gui.UI_TEXT_ENTRY_FINISHED:
+                #     correctPasswordEntered = verifyAdminPassword(getAdminPassword.get_text())
+                #     if correctPasswordEntered:
+                #         running = False
+                #         break
 
             # if user closes the window
-            if event.type == pg.QUIT:
+            if event.type == pg.QUIT and not gameOver:
                 running = False
                 break
 
             # if a pygame_gui button has been pressed
             if event.type == py_gui.UI_BUTTON_PRESSED:
 
-                if event.ui_element == exchangeTile_button and (Player1TileClicked or Player2TileClicked):
+                if event.ui_element == exchangeTile_button and (Player1TileClicked or Player2TileClicked) and not gameOver:
                     print('exchange button clicked')
                     if Player1TileClicked:
                         print('player 1 initiating exchange')
@@ -428,60 +570,92 @@ def createGameWindow(language):
                     exchangeOccurring = True
 
                 # if fillRack_button has been pressed
-                if event.ui_element == fillRack_button and TileBag.shuffleCount >= 2:
+                if event.ui_element == fillRack_button and TileBag.shuffleCount >= 2 and not gameOver:
                     Player1.rack.fillRack(TileBag)
-                    Player1.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon)
+                    Player1.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon, (584, 798))
                     Player2.rack.fillRack(TileBag)
-                    Player2.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon)
+                    Player2.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon, (584, 798))
                     readyToStart = True
                     fillRack_button.disable()
 
                 # if shuffleBag_button has been pressed
-                if event.ui_element == shuffleBag_button:
+                if event.ui_element == shuffleBag_button and not gameOver:
                     TileBag.shuffleBag()
 
-                if event.ui_element == undoMove_button:
+                if event.ui_element == undoMove_button and not gameOver:
                     gameBoard, stack, Player1, Player2 = undoPlay(gameBoard, movesMade, Player1_Turn, Player1, Player2, TileBag.getLanguage())
 
                 # if swapTurn_button has been pressed
-                if event.ui_element == swapTurn_button and TileBag.shuffleCount >= 2:
+                if event.ui_element == swapTurn_button and TileBag.shuffleCount >= 2 and not gameOver:
                     if not exchangeOccurring:  # check board now
                         valid, wordsCreated = checkTurn(gameBoard, movesMade, TileBag.getLanguage(), TileBag.alphabet, firstTurn, wordsPlayed)
+                        print(valid, wordsCreated, 'valid n wordsmade after checkTurn()')
                         print(wordsCreated, 'wordsCreated')
-                        if wordsCreated:
-                            valid = checkWords(wordsCreated, TileBag.getLanguage())
-                            if valid:  # need to code in awarding the score
-                                print('valid turn')
-                                Player1_Turn = not Player1_Turn
-                                if Player1_Turn:
-                                    Player2.rack.fillRack(TileBag)
-                                    Player2.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon)
+                        if valid:
+                            if not (len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0):
+                                valid = checkWords(wordsCreated, TileBag.getLanguage())
+                                if valid:  # need to code in awarding the score
+                                    print('valid turn')
+                                    score = calculateScore(wordsCreated, movesMade, TileBag.lexicon)
+                                    print(score, 'score calc\'ed')
+                                    Player1_Turn = not Player1_Turn
+                                    if Player1_Turn:
+                                        if not TileBag.isEmpty():
+                                            if Player2.rack.isEmpty():
+                                                score += 50
+                                            Player2.rack.fillRack(TileBag)
+                                            Player2.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon, (584, 798))
+                                            Player2.score.updateScore(score)
+                                        else:
+                                            if Player2.rack.isEmpty():
+                                                scoreToSteal = Player1.rack.getTotalScore(TileBag.lexicon)
+                                                Player2.score.updateScore(scoreToSteal)
+                                                gameOver = True
+                                    else:
+                                        if not TileBag.isEmpty():
+                                            if Player1.rack.isEmpty():
+                                                score += 50
+                                            Player1.rack.fillRack(TileBag)
+                                            Player1.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon, (584, 798))
+                                            Player1.score.updateScore(score)
+                                        else:
+                                            if Player1.rack.isEmpty():
+                                                scoreToSteal = Player2.rack.getTotalScore(TileBag.lexicon)
+                                                Player1.score.updateScore(scoreToSteal)
+                                                gameOver = True
+                                    invalidPlay = False
+                                    print(movesMade)
+                                    movesMade = []
+                                    for i, row in enumerate(wordsCreated):
+                                        for word in row:
+                                            wordsPlayed[i].append(word)
+                                    # old code below
+
+                                    # for word in wordsCreated:
+                                    #     wordsPlayed.append(word)
+                                    consecutiveZeroPointPlays = 0
+
                                 else:
-                                    Player1.rack.fillRack(TileBag)
-                                    Player1.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon)
-                                invalidPlay = False
-                                print(movesMade)
-                                movesMade = []
-                                for word in wordsCreated:
-                                    wordsPlayed.append(word)
-                                consecutiveZeroPointPlays = 0
+                                    gameBoard, stack, Player1, Player2 = undoPlay(gameBoard, movesMade, Player1_Turn,
+                                                                                  Player1, Player2,
+                                                                                  TileBag.getLanguage())
+                                    invalidPlay = True
+                                    print('invalid turn')
                             else:
-                                gameBoard, stack, Player1, Player2 = undoPlay(gameBoard, movesMade, Player1_Turn, Player1, Player2, TileBag.getLanguage())
-                                invalidPlay = True
-                                print('invalid turn')  # need to code in the user being informed their play was invalid, and their moves being undone
-                            print('Turn swapped')
-                            print(movesMade, 'stack')
-                            print(wordsPlayed, 'wordsPlayed')
+                                Player1_Turn = not Player1_Turn
+                                consecutiveZeroPointPlays += 1
                         else:
-                            Player1_Turn = not Player1_Turn
-                            consecutiveZeroPointPlays += 1
+                            gameBoard, stack, Player1, Player2 = undoPlay(gameBoard, movesMade, Player1_Turn, Player1,
+                                                                          Player2, TileBag.getLanguage())
+                            invalidPlay = True
+                            print('invalid turn')
                     else:
                         Player1_Turn = not Player1_Turn
                         consecutiveZeroPointPlays += 1
                         exchangeOccurring = False
 
                 # If determineOrder_button has been pressed
-                if event.ui_element == determineOrder_button:
+                if event.ui_element == determineOrder_button and not gameOver:
                     Player1Tile = ''
                     Player2Tile = ''
 
@@ -497,7 +671,7 @@ def createGameWindow(language):
                     orderDetermined = True
 
             # Used to decrement the timer
-            if event.type == pg.USEREVENT and readyToStart:
+            if event.type == pg.USEREVENT and readyToStart and not gameOver:
                 if Player1.timer.current_seconds != 0 and Player1_Turn and not gameOver:
                     Player1.timer.current_seconds -= 1
                     Player1.timer.updateTimer()
@@ -528,7 +702,7 @@ def createGameWindow(language):
                     blankTileClicked = False
                     mustSwapBlank = False
 
-            if event.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0]:
+            if event.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0] and not gameOver:
                 mouse_pos = pg.mouse.get_pos()
 
                 if Player1_Turn and not Player1TileClicked and (584 <= mouse_pos[0] <= 1016) and (798 <= mouse_pos[1] <= 846) and not blankTileClicked:
@@ -595,11 +769,11 @@ def createGameWindow(language):
         gameWindow.blit(TileBag.getImage(), (TileBag.getRectCoordinates()))
 
         # Blit the rack and tiles for whose turn it is
-        if Player1_Turn:
+        if Player1_Turn and not gameOver:
             gameWindow.blit(Player1.rack.getImage(), (Player1.rack.getRectCoordinates()))
             # Player1.rack.drawGroup(gameWindow)
             Player1.rack.getGroup().draw(gameWindow)
-        else:
+        elif not Player1_Turn and not gameOver:
 
             gameWindow.blit(Player2.rack.getImage(), (Player2.rack.getRectCoordinates()))
             # Player2.rack.drawGroup(gameWindow)
@@ -611,6 +785,17 @@ def createGameWindow(language):
 
         gameWindow.blit(Player2.timer.text, Player2.timer.getRectCoordinates())
         gameWindow.blit(Player2.score.text, Player2.score.getRectCoordinates())
+
+        if revealOtherRack and Player1_Turn:
+            gameWindow.blit(Player2.rack.getImage(), (1050, 775))
+            Player2.rack.getGroup().draw(gameWindow)
+            gameWindow.blit(Player1.rack.getImage(), Player1.rack.getRectCoordinates())
+            Player1.rack.getGroup().draw(gameWindow)
+        elif revealOtherRack and not Player1_Turn:
+            gameWindow.blit(Player1.rack.getImage(), (1050, 775))
+            Player1.rack.getGroup().draw(gameWindow)
+            gameWindow.blit(Player2.rack.getImage(), Player2.rack.getRectCoordinates())
+            Player2.rack.getGroup().draw(gameWindow)
 
         if invalidPlay:
             gameWindow.blit(invalidPlayWarning.text, (invalidPlayWarning.rect.x, invalidPlayWarning.rect.y))

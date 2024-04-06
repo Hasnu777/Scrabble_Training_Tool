@@ -1,20 +1,24 @@
 from windows.windowsTemplate import *
 from windows import homescreen_window
 
+
 def destroySettingsWindow(window, master):
     window.destroy()
     homescreen_window.TopFrame.topLevelWindows['Settings']=None
     unlockFromSettingsWindow(master)
+
 
 def unlockFromSettingsWindow(master):
     for frame in master.frames.values():
         for button in frame.buttons.values():
             button.configure(state='normal')
 
+
 def lockToSettingsWindow(master):
     for frame in master.frames.values():
         for button in frame.buttons.values():
             button.configure(state='disabled')
+
 
 def createSettingsWindow(master):
     mainSettingsWindow = ctk.CTkToplevel(master=master, width=600, height=400)

@@ -20,8 +20,8 @@ logInFrame = Frame(logInWindow, width=320, height=180, xpos=0, ypos=0)
 logInFrame.configure(border_width=2, border_color='green')
 logInWindow.frames['logInFrame'] = logInFrame
 
-logInLabel = Label(logInFrame, xpos=3, ypos=5, text='Welcome to the AI Scrabble Trainer 1.0',
-				   font_type='Helvetica', font_size=18)
+logInLabel = Label(logInFrame, xpos=5, ypos=5, text='Enter administrator details for tournament',
+				   font_type='Helvetica', font_size=16)
 logInFrame.labels['logInLabel'] = logInLabel
 
 UsernameEntry = EntryBox(logInFrame, xpos=16, ypos=50, placeholder_text='Enter username...')
