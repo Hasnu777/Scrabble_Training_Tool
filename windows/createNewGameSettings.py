@@ -5,9 +5,11 @@ from windows import homescreen_window
 import customtkinter as ctk
 
 LanguageOptions = None
-lang = ''
+lang = None
 masterWindow = None
 NewGameWindow = None
+
+
 def destroyNewGameSettingsWindow(window, master):
     window.destroy()
     homescreen_window.MainFrame.topLevelWindows['newGameSettings'] = None

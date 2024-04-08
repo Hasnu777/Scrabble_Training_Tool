@@ -9,11 +9,13 @@ rules = {'NASPASite': 'https://scrabbleplayers.org/w/Rules', 'WESPAPDF': os.path
 		 'FISESite': 'https://fisescrabble.org/reglamentos/'}
 rulesOptions = None
 
+Exists = False
 
-def destroyViewRulesWindow(window, master):
+
+def destroyViewRulesWindow(window):
+	global Exists
 	window.destroy()
-	homescreen_window.BottomFrame.topLevelWindows['viewRulesWindow'] = None
-	unlockFromViewRulesWindow(master)
+	Exists = False
 
 
 def unlockFromViewRulesWindow(master):
@@ -36,15 +38,17 @@ def openRules():
 
 
 def createViewRulesWindow(master):
+	global Exists
+	Exists = True
 	viewRulesWindow = ctk.CTkToplevel(master=master, width=200, height=40)
 	viewRulesWindow.title('View Rules')
-	viewRulesWindow.protocol("WM_DELETE_WINDOW", lambda: destroyViewRulesWindow(viewRulesWindow, master))
-	viewRulesFrame = Frame(master=viewRulesWindow, width=200, height=40, xpos=0, ypos=0, fg_color='blue')
+	viewRulesWindow.protocol("WM_DELETE_WINDOW", lambda: destroyViewRulesWindow(viewRulesWindow))
+	viewRulesFrame = Frame(master=viewRulesWindow, width=200, height=40, xpos=0, ypos=0, fg_color='#52342e')
 	openRulesButton = Button(master=viewRulesFrame, button_text='Open', command=openRules, xpos=150, ypos=10, width=30,
-							 height=10)
+							 height=10, fg_color="#8f563b", hover_color="#7b4932")
 	global rulesOptions
 	rulesOptions = ctk.CTkComboBox(viewRulesFrame, values=['NASPA - Site', 'WESPA - PDF', 'FFSc - Site', 'FISE - Site'])
 	rulesOptions.place(x=5, y=5)
 	viewRulesWindow.attributes("-topmost", True)
-	lockToViewRulesWindow(master=master)
-	return viewRulesWindow
+	# lockToViewRulesWindow(master=master)
+	# return viewRulesWindow

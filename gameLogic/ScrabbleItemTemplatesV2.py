@@ -74,6 +74,9 @@ class Board(pg.sprite.Sprite):
 		self.squares = [[Square(((448+j*48), (58+i*48)), text=' ') for j in range(15)] for i in range(15)]
 		self.__group = pg.sprite.Group()
 
+	def __repr__(self):
+		return self.__board
+
 	def transformImage(self, size):
 		self.__image = pg.transform.scale(self.__image, size)
 
@@ -104,6 +107,9 @@ class Board(pg.sprite.Sprite):
 	def getBoard(self):
 		return self.__board
 
+	def replaceBoard(self, board):
+		self.__board = board
+
 
 class Rack(pg.sprite.Sprite):
 	def __init__(self, coordinates):
@@ -113,6 +119,9 @@ class Rack(pg.sprite.Sprite):
 		self.__contents = ['' for _ in range(7)]
 		self.__sprites = {'TILE1': None, 'TILE2': None, 'TILE3': None, 'TILE4': None, 'TILE5': None, 'TILE6': None, 'TILE7': None}
 		self.__group = pg.sprite.Group()
+
+	def replaceContents(self, contents):
+		self.__contents = contents
 
 	def transformImage(self, size):
 		self.__image = pg.transform.scale(self.__image, size)
@@ -145,7 +154,8 @@ class Rack(pg.sprite.Sprite):
 				coordinates = (coords[0]+i*64, coords[1])
 				score = lexicon[letter][0]
 				self.__sprites[f'TILE{i+1}'] = Tile(filename, coordinates, letter, score)
-			self.__group.add(self.__sprites[f'TILE{i+1}'])
+			if self.__sprites[f'TILE{i+1}'] is not None:
+				self.__group.add(self.__sprites[f'TILE{i+1}'])
 
 	def drawGroup(self, surface):
 		self.__group.draw(surface)
@@ -224,6 +234,12 @@ class TileBag(pg.sprite.Sprite):
 				self.alphabet = list(EnglishLetters.keys())
 				self.lexicon = EnglishLetters
 
+	def __repr__(self):
+		return self.bag, self.lexicon
+
+	def replaceBag(self, bag):
+		self.bag = bag
+
 	def transformImage(self, size):
 		self.__image = pg.transform.scale(self.__image, size)
 
@@ -259,20 +275,14 @@ class Player:
 	def __init__(self, rackCoordinates, scoreCoordinates, timerCoordinates):
 		self.rack = Rack(rackCoordinates)
 		self.score = Score(scoreCoordinates)
-		self.__penalties = 0
 		self.timer = Timer(REGULAR_TIME, timerCoordinates)
 
-	def getPenalties(self):
-		return self.__penalties
-
-	def updatePenalties(self, penalty):
-		self.__penalties += penalty
+	def __repr__(self):
+		return self.rack.getContents(), self.score.getScore(), self.timer.current_seconds, self.timer.isOvertime
 
 	def replaceTimer(self):
 		self.timer = Timer(OVERTIME_TIME, (self.timer.getRectCoordinates()))
-
-	def unknown(self):
-		pass
+		self.timer.isOvertime = True
 
 
 class Timer:
@@ -291,6 +301,9 @@ class Timer:
 
 	def getRectCoordinates(self):
 		return self.__rect.x, self.__rect.y
+
+	def updateOvertimeTimer(self):
+		self.text = self.font.render(f"Time Left (Overtime): {self.current_seconds // 60:02}:{self.current_seconds % 60:02}", True, 'white')
 
 
 class Score:
