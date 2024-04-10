@@ -1,24 +1,31 @@
-from tkinter import *
+# from tkinter import *
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
-from PIL import Image
 import os
 import sqlite3 as sql
 from windows import viewRulesWindow, viewDictionaryWindow
 
 '''Important Variables'''
-language = ''
-Player1 = ''
-Player2 = ''
-Filename = ''
+language = None
+Player1 = None
+Player2 = None
+Filename = None
 
 '''Creating window'''
 ctk.set_appearance_mode("System")
 ctk.set_default_color_theme("blue")
 
+
+def destroyHomescreenWindow():
+	homescreen.wm_withdraw()
+	homescreen.quit()
+
+
 homescreen = ctk.CTk(fg_color="#39231f")
+homescreen.protocol("WM_DELETE_WINDOW", destroyHomescreenWindow)
 homescreen.title("Scrabble Tournament Game Hoster v0.1")
 homescreen.geometry(f"310x256+{homescreen.winfo_screenwidth()//2-155}+{homescreen.winfo_screenheight()//2-128}")
+homescreen.resizable(False, False)
 
 tabview = ctk.CTkTabview(
 	master=homescreen,
@@ -31,17 +38,13 @@ tabview = ctk.CTkTabview(
 tabview.place(x=5, y=0)
 
 
-def openRulesWindow(): # Edit viewRulesWindow to get rid of these class templates, idk how to feel abt them tbh
+def openRulesWindow():  # Edit viewRulesWindow to get rid of these class templates, IDK how to feel abt them tbh
 	if not viewRulesWindow.Exists:
 		viewRulesWindow.createViewRulesWindow(homescreen)
 
 
-RulesIconImage = Image.open(os.path.join(os.path.dirname(__file__), '../assets\\images\\RulesIcon.png'))
-RulesIcon = ctk.CTkImage(light_image=Image.open('../assets/images/RulesIcon.png'))
-RulesIcon.configure(size=(40, 40))
-
-openRules_Button = ctk.CTkButton(homescreen, command=openRulesWindow, text='open rules', image=RulesIcon, width=70, height=70, fg_color="#8f563b", hover_color="#7b4932", bg_color='#52342e')
-openRules_Button.place(x=10, y=175)
+openRules_Button = ctk.CTkButton(homescreen, command=openRulesWindow, text='View Rules', width=40, fg_color="#8f563b", hover_color="#7b4932", bg_color='#52342e')
+openRules_Button.place(x=10, y=216)
 
 
 def openDictionaryWindow():
@@ -49,12 +52,8 @@ def openDictionaryWindow():
 		viewDictionaryWindow.createViewDictionaryWindow(homescreen)
 
 
-DictionaryIconImage = Image.open(os.path.join(os.path.dirname(__file__), '../assets\\images\\DictionaryIcon.png'))
-DictionaryIcon = ctk.CTkImage(light_image=DictionaryIconImage, dark_image=DictionaryIconImage)
-DictionaryIcon.configure(size=(40, 40))
-
-openDictionary_Button = ctk.CTkButton(homescreen, command=openDictionaryWindow, text='open dict', image=Image.open('../assets/images/DictionaryIcon.png'), width=70, height=70, fg_color="#8f563b", hover_color="#7b4932", bg_color='#52342e')
-openDictionary_Button.place(x=230, y=175)
+openDictionary_Button = ctk.CTkButton(homescreen, command=openDictionaryWindow, text='View Dictionary', width=60, fg_color="#8f563b", hover_color="#7b4932", bg_color='#52342e')
+openDictionary_Button.place(x=197, y=216)
 
 
 '''New Game Tab'''
@@ -106,14 +105,19 @@ chooseLanguage_Button.place(x=180, y=90)
 
 def startNewGame():
 	if (Player1 != '') and (Player2 != '') and (language != ''):
-		homescreen.destroy()
+		if Player1 != Player2:
+			homescreen.withdraw()
+			homescreen.quit()
+			print('kill')
+		else:
+			CTkMessagebox(message='Error: Username repeated for Player 1 and Player 2', title='Username Error')
 	else:
 		CTkMessagebox(message='Error: Username not entered or language not chosen', title='Start Game Error')
-		# alter design of window maybe idk
+		# alter design of window maybe IDK
 
 
 newGame_Button = ctk.CTkButton(newGame, width=100, text='Start Game', command=startNewGame, fg_color="#8f563b", hover_color="#7b4932")
-newGame_Button.place(x=90, y=140)
+newGame_Button.place(x=80, y=174)
 
 
 '''Load Game Tab'''
@@ -124,13 +128,16 @@ enterFileName = ctk.CTkEntry(loadGame, placeholder_text='Enter file name...')
 enterFileName.place(x=75, y=20)
 
 
+# Providing list shouldn't be too hard: get all file names via SQL connection, create list out of cursor.fetchall() and shove into CTkComboBox() then alter getFile() to handle that appropriately
 def getFile():  # can't test this since I haven't made the SQL table, but I don't see why it wouldn't work
-	with sql.connect(os.path.join(os.path.dirname(__file__), 'ScrabbleTournamentGame.db')) as conn:
+	global Filename
+	with sql.connect(os.path.join(os.path.dirname(__file__), '../ScrabbleTournamentGame.db')) as conn:
 		cursor = conn.cursor()
 		cursor.execute('SELECT fileName FROM Games where fileName=?', (enterFileName.get(),))
 		nameFetched = cursor.fetchone()[0]
 		if nameFetched != '':
 			Filename = nameFetched
+			# homescreen.destroy()
 		else:
 			CTkMessagebox(message='Error: Invalid file name', title='File Name Error')
 
@@ -138,11 +145,13 @@ def getFile():  # can't test this since I haven't made the SQL table, but I don'
 loadGame_Button = ctk.CTkButton(loadGame, width=80, text='Load Game', command=getFile, fg_color="#8f563b", hover_color="#7b4932")
 loadGame_Button.place(x=105, y=70)
 
-'''View Info Tab'''
+# '''View Info Tab'''
 
 # viewInfo = tabview.add("View Info")
 #
 # viewInfo_Button = ctk.CTkButton(viewInfo).place(x=30, y=20)
 
 
-homescreen.mainloop()
+def run():
+	homescreen.mainloop()
+	homescreen.destroy()

@@ -272,7 +272,8 @@ class TileBag(pg.sprite.Sprite):
 
 
 class Player:
-	def __init__(self, rackCoordinates, scoreCoordinates, timerCoordinates):
+	def __init__(self, name, rackCoordinates, scoreCoordinates, timerCoordinates):
+		self.name = name
 		self.rack = Rack(rackCoordinates)
 		self.score = Score(scoreCoordinates)
 		self.timer = Timer(REGULAR_TIME, timerCoordinates)

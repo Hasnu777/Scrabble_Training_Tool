@@ -2,19 +2,20 @@ import pygame as pg
 import json
 import pygame_gui as py_gui
 import random
-import sqlite3
+import sqlite3 as sql
 import os
 from gameLogic import ScrabbleItemTemplatesV2
+from datetime import datetime
 
 
-def initialiseScrabbleItems(language):
+def initialiseScrabbleItems(language, P1Name, P2Name):
 
 	gameBoard = ScrabbleItemTemplatesV2.Board((400, 10))
 	gameBoard = AddSpecialLocations(gameBoard)
 
-	Player1 = ScrabbleItemTemplatesV2.Player((550, 775), (1180, 750), (1180, 720))
+	Player1 = ScrabbleItemTemplatesV2.Player(P1Name, (550, 775), (1180, 750), (1180, 720))
 
-	Player2 = ScrabbleItemTemplatesV2.Player((550, 775), (1180, 75), (1180, 45))
+	Player2 = ScrabbleItemTemplatesV2.Player(P2Name, (550, 775), (1180, 75), (1180, 45))
 
 	TileBag = ScrabbleItemTemplatesV2.TileBag((50, 250), language)
 
@@ -227,7 +228,7 @@ def undoMove(board, stack, PlayerTurn, Player1, Player2):
 
 
 def checkWords(wordsToCheck, language):
-	conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), '../word_lists.db'))
+	conn = sql.connect(os.path.join(os.path.dirname(__file__), '../ScrabbleTournamentGame.db'))
 	cursor = conn.cursor()
 	for row in wordsToCheck:  # new for loop to handle wordsToCheck being a 2D array
 		for word in row:
@@ -293,13 +294,14 @@ def exchangeTile(player, tileToExchange, tileToExchangePosition, tileBag):
 	newTile = spritesList[f'TILE{tileToExchangePosition+1}']
 	print(newTile.getLetter(), 'newTile that was put into rack')
 	newTile.canBeClicked = False
+	newTile.updateImage('TILE_UNKNOWN.png')
 	spritesList[f'TILE{tileToExchangePosition+1}'] = newTile
 	player.rack.updateSprites(spritesList)
 	return player, tileBag, False
 
 
 def verifyAdminPassword(password, IDToUse):
-	conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), '../scrabbleTrainingTool.db'))
+	conn = sql.connect(os.path.join(os.path.dirname(__file__), '../scrabbleTrainingTool.db'))
 	cursor = conn.cursor()
 	cursor.execute('SELECT password FROM users WHERE id=?', (IDToUse,))
 	daPassword = cursor.fetchone()
@@ -407,10 +409,21 @@ def applyPenalties(player, scoreStolen, lexicon):
 
 
 def loadGame(file):
+	# try:
+	# 	with open(os.path.join(os.path.dirname(__file__), f'../data\\{file}.json')) as f:
+	# 		gameData = json.load(f)
+	# except FileNotFoundError:
+	# 	try:
+	# 		with open(os.path.join(os.path.dirname(__file__), f'../data\\{file}')) as f:
+	# 			gameData = json.load(f)
+	# 	except FileNotFoundError:
+	# 		return initialiseScrabbleItems('English', 'Player 1', 'Player 2'), [True, False, False, True, False, 2, False, False, False, 0, False, False, False, False, False, False, False, False, False]
+
 	with open(os.path.join(os.path.dirname(__file__), f'../data\\{file}.json')) as f:
 		gameData = json.load(f)
 
-	board = gameData['Board']
+	board = list(gameData['Board'].values())
+	print(board)
 	gameBoard = ScrabbleItemTemplatesV2.Board((400, 10))
 	gameBoard.replaceBoard(board)
 
@@ -419,34 +432,96 @@ def loadGame(file):
 	TileBag = ScrabbleItemTemplatesV2.TileBag((50, 250), language)
 	TileBag.replaceBag(bag)
 
+	for row in range(15):
+		for column in range(15):
+			if gameBoard.getBoard()[row][column] in TileBag.alphabet:
+				tile = ScrabbleItemTemplatesV2.Tile(
+					f'{language}Letters\\TILE_{gameBoard.getBoard()[row][column]}.png',
+					(448+column*48, 58+row*48),
+					gameBoard.getBoard()[row][column],
+					TileBag.lexicon[gameBoard.getBoard()[row][column]][0])
+				tile.transformImage((32, 32))
+				gameBoard.addToGroup(tile)
+
+	TileBag.shuffleCount = 2
+
+	P1Name = gameData['Player 1']['Name']
 	P1Rack = gameData['Player 1']['Rack']
 	P1Score = gameData['Player 1']['Score']
 	P1TimeLeft = gameData['Player 1']['Timer']['Time Left']
 	P1Overtime = gameData['Player 1']['Timer']['Overtime']
-	Player1 = ScrabbleItemTemplatesV2.Player((550, 775), (1180, 750), (1180, 720))
+	Player1 = ScrabbleItemTemplatesV2.Player(P1Name, (550, 775), (1180, 750), (1180, 720))
 	Player1.rack.replaceContents(P1Rack)
 	Player1.rack.fillRackGroup(language, TileBag.lexicon, (584, 798))
 	Player1.score.updateScore(P1Score)
 	Player1.timer.current_seconds = P1TimeLeft
 	Player1.timer.isOvertime = P1Overtime
 
+	P2Name = gameData['Player 2']['Name']
 	P2Rack = gameData['Player 2']['Rack']
 	P2Score = gameData['Player 2']['Score']
 	P2TimeLeft = gameData['Player 2']['Timer']['Time Left']
 	P2Overtime = gameData['Player 2']['Timer']['Overtime']
-	Player2 = ScrabbleItemTemplatesV2.Player((550, 775), (1180, 75), (1180, 45))
+	Player2 = ScrabbleItemTemplatesV2.Player(P2Name, (550, 775), (1180, 75), (1180, 45))
 	Player2.rack.replaceContents(P2Rack)
 	Player2.rack.fillRackGroup(language, TileBag.lexicon, (584, 798))
 	Player2.score.updateScore(P2Score)
 	Player2.timer.current_seconds = P2TimeLeft
 	Player2.timer.isOvertime = P2Overtime
 
-	flags = gameData['Player 2']['Flags'].values()
+	flags = list(gameData['Flags'].values())
 
-	return gameBoard, TileBag, Player1, Player2, flags
+	return gameBoard, TileBag, Player1, Player2, flags, P1Name, P2Name
 
 
-def createGameWindow(adminID, language=None, gameFile=None):
+def getPlayerID(username):
+	with sql.connect(os.path.join(os.path.dirname(__file__), '../ScrabbleTournamentGame.db')) as conn:
+		cursor = conn.cursor()
+		cursor.execute('SELECT playerID FROM Players WHERE username=?', (username,))
+		userID = cursor.fetchone()
+		if userID is not None:
+			return userID[0]
+		else:
+			cursor.execute('''INSERT INTO Players ('username') VALUES (?)''', (username,))
+			cursor.execute('SELECT playerID FROM Players WHERE username=?', (username,))
+			return cursor.fetchone()[0]
+
+
+def createGameRecord(adminID, Player1_ID, Player2_ID):
+	with sql.connect(os.path.join(os.path.dirname(__file__), '../ScrabbleTournamentGame.db')) as conn:
+		cursor = conn.cursor()
+		current_time = datetime.now()
+		cursor.execute('''INSERT INTO Games ('datePlayed') VALUES (?)''', (current_time,))
+		cursor.execute('''SELECT gameID FROM Games WHERE datePlayed=?''', (current_time,))
+		gameID = cursor.fetchone()[0]
+		cursor.execute('''INSERT INTO AdminGames ('gameID', 'adminID') VALUES (?, ?)''', (gameID, adminID,))
+		cursor.execute('''INSERT INTO PlayerGames ('gameID', 'playerID') VALUES (?, ?)''', (gameID, Player1_ID,))
+		cursor.execute('''INSERT INTO PlayerGames ('gameID', 'playerID') VALUES (?, ?)''', (gameID, Player2_ID,))
+		return gameID
+
+
+def getGameID(filename):
+	with sql.connect(os.path.join(os.path.dirname(__file__), '../ScrabbleTournamentGame.db')) as conn:
+		cursor = conn.cursor()
+		cursor.execute('SELECT gameID FROM Games WHERE fileName=?', (filename,))
+		return cursor.fetchone()[0]
+
+
+def addToGameHistory(gameID, moveNumber, playerID, words, score, exchanged, skipped):
+	with sql.connect(os.path.join(os.path.dirname(__file__), '../ScrabbleTournamentGame.db')) as conn:
+		cursor = conn.cursor()
+		cursor.execute('''INSERT INTO GameHistory 
+		('gameID', 'moveNumber', 'playerID', 'words', 'score', 'exchanged', 'skipped') 
+		VALUES (?, ?, ?, ?, ?, ?, ?)''', (gameID, moveNumber, playerID, words, score, exchanged, skipped,))
+
+
+# Need to remove entering player names after attempting pg.QUIT. Remove relevant ui elements and flags. ✅
+# Also need to display player names during turns and post-game, instead of Player1, Player2. ✅
+# Add in text headers for file name and admin password, to explain to users what goes in which box. ✅
+# Add in code to retrieve relevant data for the SQL tables, create these functions and put them in at the right locations in the below function
+
+
+def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFile=None):
 
 	pg.init()
 
@@ -460,7 +535,7 @@ def createGameWindow(adminID, language=None, gameFile=None):
 	gameWindow = pg.display.set_mode((1600, 900))
 
 	background = pg.Surface((1600, 900))
-	background.fill(pg.Color('#39231f'))
+	background.fill(pg.Color('#3e231e'))
 
 	UIManager = py_gui.UIManager((1600, 900))
 
@@ -485,14 +560,27 @@ def createGameWindow(adminID, language=None, gameFile=None):
 
 	running = True
 
-	flags = [True, False, False, True, False, 2, False, False, False, 0, False, False, False, False, False, False, False, False, False, False, False]
+	flags = [True, False, False, True, False, 2, False, False, False, 0, False, False, False, False, False, False, False, False, False, 0]
 
-	if language is not None:
-		gameBoard, Player1, Player2, TileBag = initialiseScrabbleItems(language)
+	if newGameLang is not None:
+		gameBoard, Player1, Player2, TileBag = initialiseScrabbleItems(newGameLang, P1Name, P2Name)
 	elif gameFile is not None:
-		gameBoard, TileBag, Player1, Player2, flags = loadGame(gameFile)
+		gameBoard, TileBag, Player1, Player2, flags, P1Name, P2Name = loadGame(gameFile)
 	else:
-		gameBoard, Player1, Player2, TileBag = initialiseScrabbleItems('English')
+		gameBoard, Player1, Player2, TileBag = initialiseScrabbleItems('English', P1Name, P2Name)
+
+	Player1_ID = getPlayerID(P1Name)
+	Player2_ID = getPlayerID(P2Name)
+
+	print(Player1_ID, 'player1 id')
+	print(Player2_ID, 'player2 id')
+
+	if newGameLang is not None:
+		gameID = createGameRecord(adminID, Player1_ID, Player2_ID)
+	else:
+		gameID = getGameID(gameFile)
+
+	print(gameID, 'game id')
 
 	Player1_Turn = flags[0]
 	orderDetermined = flags[1]
@@ -512,11 +600,10 @@ def createGameWindow(adminID, language=None, gameFile=None):
 	spritesAltered = flags[15]
 	Player1TileClicked = flags[16]
 	Player2TileClicked = flags[17]
-	P1NameEntered = flags[18]
-	P2NameEntered = flags[19]
-	FileNameEntered = flags[20]
+	FileNameEntered = flags[18]
+	moveNumber = flags[19]
 
-	PauseButton = py_gui.elements.UIButton(relative_rect=pg.Rect((20, 20), (100, 50)), text='Pause', manager=UIManager)
+	PauseButton = py_gui.elements.UIButton(relative_rect=pg.Rect((1480, 20), (100, 50)), text='Pause', manager=UIManager)
 	PauseButton.disable()
 
 	getLetterToReplace = py_gui.elements.UIWindow(pg.Rect(1210, 338, 400, 300), manager=UIManager, window_display_title='New Letter?')
@@ -525,41 +612,44 @@ def createGameWindow(adminID, language=None, gameFile=None):
 	selectLetterToReplace = py_gui.elements.ui_drop_down_menu.UIDropDownMenu(options_list=TileBag.alphabet[1:], starting_option='A', relative_rect=pg.Rect((350, 338), (50, 20)), manager=UIManager)
 	selectLetterToReplace.hide()
 
-	enterAdminPassword = py_gui.elements.ui_text_entry_line.UITextEntryLine(relative_rect=pg.Rect((1250, 600), (200, 30)), manager=UIManager)
+	enterAdminPasswordLabel = ScrabbleItemTemplatesV2.Text((1252, 400), (200, 50), 'Enter Admin Password:')
+
+	enterAdminPassword = py_gui.elements.ui_text_entry_line.UITextEntryLine(relative_rect=pg.Rect((1250, 425), (200, 30)), manager=UIManager)
 	enterAdminPassword.disable()
 	enterAdminPassword.hide()
 
-	getAdminPassword = py_gui.elements.UIButton(relative_rect=pg.Rect((1460, 600), (75, 20)),  text='Enter', manager=UIManager, text_kwargs={'size': '4'})
+	getAdminPassword = py_gui.elements.UIButton(relative_rect=pg.Rect((1460, 425), (75, 30)),  text='Enter', manager=UIManager, text_kwargs={'size': '4'})
 	getAdminPassword.hide()
 	getAdminPassword.disable()
 
-	cancelClose_button = py_gui.elements.UIButton(relative_rect=pg.Rect((1300, 650), (100, 50)), text='Cancel', manager=UIManager)
+	cancelClose_button = py_gui.elements.UIButton(relative_rect=pg.Rect((1300, 475), (100, 50)), text='Cancel', manager=UIManager)
 	cancelClose_button.hide()
 	cancelClose_button.disable()
 
-	enterPlayer1Name = py_gui.elements.ui_text_entry_line.UITextEntryLine(relative_rect=pg.Rect((1250, 300), (200, 30)), manager=UIManager)
-	enterPlayer1Name.hide()
-	enterPlayer1Name.disable()
-	getPlayer1Name = py_gui.elements.UIButton(relative_rect=pg.Rect((1460, 300), (75, 20)), text='Enter', manager=UIManager, text_kwargs={'size': '4'})
-	getPlayer1Name.hide()
+	# enterPlayer1Name = py_gui.elements.ui_text_entry_line.UITextEntryLine(relative_rect=pg.Rect((1250, 300), (200, 30)), manager=UIManager)
+	# enterPlayer1Name.hide()
+	# enterPlayer1Name.disable()
+	# getPlayer1Name = py_gui.elements.UIButton(relative_rect=pg.Rect((1460, 300), (75, 20)), text='Enter', manager=UIManager, text_kwargs={'size': '4'})
+	# getPlayer1Name.hide()
+	#
+	# P1Name = P1Name
+	#
+	# enterPlayer2Name = py_gui.elements.ui_text_entry_line.UITextEntryLine(relative_rect=pg.Rect((1250, 400), (200, 30)), manager=UIManager)
+	# enterPlayer2Name.hide()
+	# enterPlayer2Name.disable()
+	# getPlayer2Name = py_gui.elements.UIButton(relative_rect=pg.Rect((1460, 400), (75, 20)), text='Enter', manager=UIManager, text_kwargs={'size': '4'})
+	# getPlayer2Name.hide()
+	# P2Name = P2Name
 
-	P1Name = ''
+	enterFileNameLabel = ScrabbleItemTemplatesV2.Text((1252, 300), (200, 50), 'Enter File Name:')
 
-	enterPlayer2Name = py_gui.elements.ui_text_entry_line.UITextEntryLine(relative_rect=pg.Rect((1250, 400), (200, 30)), manager=UIManager)
-	enterPlayer2Name.hide()
-	enterPlayer2Name.disable()
-	getPlayer2Name = py_gui.elements.UIButton(relative_rect=pg.Rect((1460, 400), (75, 20)), text='Enter', manager=UIManager, text_kwargs={'size': '4'})
-	getPlayer2Name.hide()
-	P2Name = ''
-
-	enterFileName = py_gui.elements.ui_text_entry_line.UITextEntryLine(relative_rect=pg.Rect((1250, 500), (200, 30)), manager=UIManager)
+	enterFileName = py_gui.elements.ui_text_entry_line.UITextEntryLine(relative_rect=pg.Rect((1250, 325), (200, 30)), manager=UIManager)
 	enterFileName.hide()
 	enterFileName.disable()
-	getFileName = py_gui.elements.UIButton(relative_rect=pg.Rect((1460, 500), (75, 20)), text='Enter', manager=UIManager, text_kwargs={'size': '4'})
+	getFileName = py_gui.elements.UIButton(relative_rect=pg.Rect((1460, 325), (75, 30)), text='Enter', manager=UIManager, text_kwargs={'size': '4'})
 	getFileName.hide()
+	getFileName.disable()
 	FileName = ''
-
-	# getLetterToReplace = py_gui.elements.UIWindow(pg.Rect(SCREEN_WIDTH/2-200, SCREEN_HEIGHT/2-150, 400, 300), manager=UIManager, window_display_title='WARNING')
 
 	invalidPlayWarning = ScrabbleItemTemplatesV2.Text((1210, 338), (200, 100), 'Invalid Play. Try again.')
 
@@ -596,6 +686,7 @@ def createGameWindow(adminID, language=None, gameFile=None):
 
 			if consecutiveZeroPointPlays == 6 or gameOver:
 				revealOtherRack = True
+
 				if Player1_Turn and not spritesAltered:
 					Player2.rack.alterSprites()
 					# Player2.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon, (1194, 323))
@@ -619,19 +710,19 @@ def createGameWindow(adminID, language=None, gameFile=None):
 				if event.type == pg.KEYDOWN or event.type == pg.KEYUP:
 					# hide text
 					enterAdminPassword.set_text_hidden()
-				if cancelClose_button.is_enabled == 0:
-					cancelClose_button.show()
-					cancelClose_button.enable()
-				if enterPlayer1Name.is_enabled == 0:
-					getPlayer1Name.show()
-					getPlayer1Name.enable()
-					enterPlayer1Name.show()
-					enterPlayer1Name.enable()
-				if enterPlayer2Name.is_enabled == 0:
-					getPlayer2Name.show()
-					getPlayer2Name.enable()
-					enterPlayer2Name.show()
-					enterPlayer2Name.enable()
+				# if cancelClose_button.is_enabled == 0:
+				# 	cancelClose_button.show()
+				# 	cancelClose_button.enable()
+				# if enterPlayer1Name.is_enabled == 0:
+				# 	getPlayer1Name.show()
+				# 	getPlayer1Name.enable()
+				# 	enterPlayer1Name.show()
+				# 	enterPlayer1Name.enable()
+				# if enterPlayer2Name.is_enabled == 0:
+				# 	getPlayer2Name.show()
+				# 	getPlayer2Name.enable()
+				# 	enterPlayer2Name.show()
+				# 	enterPlayer2Name.enable()
 				if enterFileName.is_enabled == 0:
 					enterFileName.show()
 					enterFileName.enable()
@@ -643,6 +734,16 @@ def createGameWindow(adminID, language=None, gameFile=None):
 					enterAdminPassword.show()
 					enterAdminPassword.enable()
 					enterAdminPassword.set_text_hidden()
+				if swapTurn_button.is_enabled == 1:
+					# disable
+					swapTurn_button.disable()
+				if exchangeTile_button.is_enabled == 1:
+					# disable
+					exchangeTile_button.disable()
+				if undoMove_button.is_enabled == 1:
+					undoMove_button.disable()
+				if PauseButton.is_enabled == 1:
+					PauseButton.disable()
 
 				if event.type == py_gui.UI_BUTTON_PRESSED:
 					if event.ui_element == enterAdminPassword:
@@ -652,19 +753,20 @@ def createGameWindow(adminID, language=None, gameFile=None):
 							running = False
 							break
 
-					if event.ui_element == enterPlayer1Name:
-						P1Name = enterPlayer1Name.get_text()
-						P1NameEntered = True
-
-					if event.ui_element == enterPlayer2Name:
-						P2Name = enterPlayer2Name.get_text()
-						P2NameEntered = True
+					# if event.ui_element == enterPlayer1Name:
+					# 	P1Name = enterPlayer1Name.get_text()
+					# 	P1NameEntered = True
+					#
+					# if event.ui_element == enterPlayer2Name:
+					# 	P2Name = enterPlayer2Name.get_text()
+					# 	P2NameEntered = True
 
 					if event.ui_element == enterFileName:
 						FileName = enterFileName.get_text()
 						FileNameEntered = True
 
-			if event.type == pg.QUIT:
+			if event.type == pg.QUIT and readyToStart:
+				invalidPlay = False
 				if PauseButton.is_enabled == 1:
 					# disable
 					PauseButton.disable()
@@ -683,16 +785,16 @@ def createGameWindow(adminID, language=None, gameFile=None):
 				if cancelClose_button.is_enabled == 0:
 					cancelClose_button.show()
 					cancelClose_button.enable()
-				if enterPlayer1Name.is_enabled == 0:
-					getPlayer1Name.show()
-					getPlayer1Name.enable()
-					enterPlayer1Name.show()
-					enterPlayer1Name.enable()
-				if enterPlayer2Name.is_enabled == 0:
-					getPlayer2Name.show()
-					getPlayer2Name.enable()
-					enterPlayer2Name.show()
-					enterPlayer2Name.enable()
+				# if enterPlayer1Name.is_enabled == 0:
+				# 	getPlayer1Name.show()
+				# 	getPlayer1Name.enable()
+				# 	enterPlayer1Name.show()
+				# 	enterPlayer1Name.enable()
+				# if enterPlayer2Name.is_enabled == 0:
+				# 	getPlayer2Name.show()
+				# 	getPlayer2Name.enable()
+				# 	enterPlayer2Name.show()
+				# 	enterPlayer2Name.enable()
 				if enterFileName.is_enabled == 0:
 					enterFileName.show()
 					enterFileName.enable()
@@ -704,6 +806,9 @@ def createGameWindow(adminID, language=None, gameFile=None):
 					getAdminPassword.show()
 					getAdminPassword.enable()
 					enterAdminPassword.set_text_hidden()
+			elif event.type == pg.QUIT and not readyToStart:
+				running = False
+				break
 
 			# if user closes the window
 			# if event.type == pg.QUIT and not gameOver:
@@ -721,22 +826,22 @@ def createGameWindow(adminID, language=None, gameFile=None):
 			# if a pygame_gui button has been pressed
 			if event.type == py_gui.UI_BUTTON_PRESSED:
 
-				if event.ui_element == getAdminPassword and P1NameEntered and P2NameEntered and FileNameEntered:
+				if event.ui_element == getAdminPassword and FileNameEntered:
 					print('button has been pressed')
 					correctPasswordEntered = verifyAdminPassword(enterAdminPassword.get_text(), adminID)
 					if correctPasswordEntered:
 						running = False
 						break
 
-				if event.ui_element == getPlayer1Name:
-					P1Name = enterPlayer1Name.get_text()
-					P1NameEntered = True
-					print(P1Name, P1NameEntered)
-
-				if event.ui_element == getPlayer2Name:
-					P2Name = enterPlayer2Name.get_text()
-					P2NameEntered = True
-					print(P2Name, P2NameEntered)
+				# if event.ui_element == getPlayer1Name:
+				# 	P1Name = enterPlayer1Name.get_text()
+				# 	P1NameEntered = True
+				# 	print(P1Name, P1NameEntered)
+				#
+				# if event.ui_element == getPlayer2Name:
+				# 	P2Name = enterPlayer2Name.get_text()
+				# 	P2NameEntered = True
+				# 	print(P2Name, P2NameEntered)
 
 				if event.ui_element == getFileName:
 					FileName = enterFileName.get_text()
@@ -744,14 +849,14 @@ def createGameWindow(adminID, language=None, gameFile=None):
 					print(FileName, FileNameEntered)
 
 				if event.ui_element == cancelClose_button:
-					getPlayer1Name.hide()
-					getPlayer1Name.disable()
-					enterPlayer1Name.hide()
-					enterPlayer1Name.disable()
-					getPlayer2Name.hide()
-					getPlayer2Name.disable()
-					enterPlayer2Name.hide()
-					enterPlayer2Name.disable()
+					# getPlayer1Name.hide()
+					# getPlayer1Name.disable()
+					# enterPlayer1Name.hide()
+					# enterPlayer1Name.disable()
+					# getPlayer2Name.hide()
+					# getPlayer2Name.disable()
+					# enterPlayer2Name.hide()
+					# enterPlayer2Name.disable()
 					getFileName.hide()
 					getFileName.disable()
 					enterFileName.hide()
@@ -766,6 +871,7 @@ def createGameWindow(adminID, language=None, gameFile=None):
 					swapTurn_button.enable()
 					exchangeTile_button.enable()
 					undoMove_button.enable()
+					isPaused = False
 
 				if event.ui_element == PauseButton and not gameOver:
 					if not isPaused:
@@ -784,6 +890,9 @@ def createGameWindow(adminID, language=None, gameFile=None):
 						isPaused = False
 
 				if event.ui_element == exchangeTile_button and (Player1TileClicked or Player2TileClicked) and not (gameOver or isPaused):
+					blankTileClicked = False
+					mustSwapBlank = False
+					selectLetterToReplace.hide()
 					print('exchange button clicked')
 					if Player1TileClicked:
 						print('player 1 initiating exchange')
@@ -856,6 +965,12 @@ def createGameWindow(adminID, language=None, gameFile=None):
 												scoreStolen = True
 									invalidPlay = False
 									print(movesMade)
+									wordsCreatedString = ','.join(wordsCreated[0])+','+','.join(wordsCreated[1])
+									if Player1_Turn:
+										addToGameHistory(gameID, moveNumber, Player2_ID, wordsCreatedString, score, exchangeOccurring, bool(len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0))
+									else:
+										addToGameHistory(gameID, moveNumber, Player1_ID, wordsCreatedString, score, exchangeOccurring, bool(len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0))
+									moveNumber += 1
 									movesMade = []
 									for i, row in enumerate(wordsCreated):
 										for word in row:
@@ -872,7 +987,12 @@ def createGameWindow(adminID, language=None, gameFile=None):
 									print('invalid turn')
 							else:
 								Player1_Turn = not Player1_Turn
+								if Player1_Turn:
+									addToGameHistory(gameID, moveNumber, Player2_ID, '', 0, exchangeOccurring, bool(len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0))
+								else:
+									addToGameHistory(gameID, moveNumber, Player1_ID, '', 0, exchangeOccurring, bool(len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0))
 								consecutiveZeroPointPlays += 1
+								moveNumber += 1
 						else:
 							gameBoard, stack, Player1, Player2 = undoPlay(gameBoard, movesMade, Player1_Turn, Player1, Player2, TileBag.getLanguage())
 							invalidPlay = True
@@ -883,13 +1003,18 @@ def createGameWindow(adminID, language=None, gameFile=None):
 							sprites = Player2.rack.getSprites()
 							for i in range(7):
 								sprites[f'TILE{i+1}'].canBeClicked = True
+								sprites[f'TILE{i+1}'].updateImage(f"{TileBag.getLanguage()}Letters\\TILE_{Player2.rack.getContents()[i]}.png")
 							Player2.rack.updateSprites(sprites)
+							addToGameHistory(gameID, moveNumber, Player2_ID, '', 0, exchangeOccurring, False)
 						else:
 							sprites = Player1.rack.getSprites()
 							for i in range(7):
 								sprites[f'TILE{i + 1}'].canBeClicked = True
+								sprites[f'TILE{i + 1}'].updateImage(f"{TileBag.getLanguage()}Letters\\TILE_{Player1.rack.getContents()[i]}")
 							Player1.rack.updateSprites(sprites)
+							addToGameHistory(gameID, moveNumber, Player1_ID, '', 0, exchangeOccurring, False)
 						consecutiveZeroPointPlays += 1
+						moveNumber += 1
 						exchangeOccurring = False
 
 				# If determineOrder_button has been pressed
@@ -997,13 +1122,13 @@ def createGameWindow(adminID, language=None, gameFile=None):
 		# Blit the rack and tiles for whose turn it is
 		if Player1_Turn and not gameOver:
 			gameWindow.blit(Player1.rack.getImage(), (Player1.rack.getRectCoordinates()))
-			gameWindow.blit(ScrabbleItemTemplatesV2.Text((700, 875), (200, 100), 'Player1').text, (700, 875))
+			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player1.name}').text, (568, 875))
 			# Player1.rack.drawGroup(gameWindow)
 			Player1.rack.getGroup().draw(gameWindow)
 		elif not Player1_Turn and not gameOver:
 
 			gameWindow.blit(Player2.rack.getImage(), (Player2.rack.getRectCoordinates()))
-			gameWindow.blit(ScrabbleItemTemplatesV2.Text((700, 875), (200, 100), 'Player2').text, (700, 875))
+			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player2.name}').text, (568, 875))
 			# Player2.rack.drawGroup(gameWindow)
 			Player2.rack.getGroup().draw(gameWindow)
 
@@ -1016,18 +1141,23 @@ def createGameWindow(adminID, language=None, gameFile=None):
 
 		if revealOtherRack and Player1_Turn:
 			gameWindow.blit(Player2.rack.getImage(), (1050, 775))
-			gameWindow.blit(ScrabbleItemTemplatesV2.Text((1200, 875), (200, 100), 'Player2').text, (1200, 875))
-			gameWindow.blit(ScrabbleItemTemplatesV2.Text((700, 875), (200, 100), 'Player1').text, (700, 875))
+			gameWindow.blit(ScrabbleItemTemplatesV2.Text((1068, 875), (200, 100), f'{Player2.name}').text, (1068, 875))
+			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player1.name}').text, (568, 875))
 			Player2.rack.getGroup().draw(gameWindow)
 			gameWindow.blit(Player1.rack.getImage(), Player1.rack.getRectCoordinates())
 			Player1.rack.getGroup().draw(gameWindow)
 		elif revealOtherRack and not Player1_Turn:
 			gameWindow.blit(Player1.rack.getImage(), (1050, 775))
-			gameWindow.blit(ScrabbleItemTemplatesV2.Text((1200, 875), (200, 100), 'Player1').text, (1200, 875))
-			gameWindow.blit(ScrabbleItemTemplatesV2.Text((700, 875), (200, 100), 'Player2').text, (700, 875))
+			gameWindow.blit(ScrabbleItemTemplatesV2.Text((1068, 875), (200, 100), f'{Player1.name}').text, (1068, 875))
+			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player2.name}').text, (568, 875))
 			Player1.rack.getGroup().draw(gameWindow)
 			gameWindow.blit(Player2.rack.getImage(), Player2.rack.getRectCoordinates())
 			Player2.rack.getGroup().draw(gameWindow)
+
+		if getFileName.is_enabled == 1:
+			gameWindow.blit(enterFileNameLabel.text, enterFileNameLabel.rect)
+		if getAdminPassword.is_enabled == 1:
+			gameWindow.blit(enterAdminPasswordLabel.text, enterAdminPasswordLabel.rect)
 
 		if invalidPlay:
 			gameWindow.blit(invalidPlayWarning.text, (invalidPlayWarning.rect.x, invalidPlayWarning.rect.y))
@@ -1044,14 +1174,6 @@ def createGameWindow(adminID, language=None, gameFile=None):
 		pg.display.update()
 
 	pg.quit()
-
-	print(gameBoard.__repr__())
-
-	print(TileBag.__repr__())
-
-	print(Player1.__repr__())
-
-	print(Player2.__repr__())
 
 	boardDict = {
 		'1': gameBoard.getBoard()[0],
@@ -1077,7 +1199,7 @@ def createGameWindow(adminID, language=None, gameFile=None):
 	}
 
 	Player1Dict = {
-		'Name': P1Name,
+		'Name': Player1.name,
 		'Rack': Player1.rack.getContents(),
 		'Score': Player1.score.getScore(),
 		'Timer': {
@@ -1088,7 +1210,7 @@ def createGameWindow(adminID, language=None, gameFile=None):
 	}
 
 	Player2Dict = {
-		'Name': P2Name,
+		'Name': Player2.name,
 		'Rack': Player2.rack.getContents(),
 		'Score': Player2.score.getScore(),
 		'Timer': {
@@ -1098,6 +1220,7 @@ def createGameWindow(adminID, language=None, gameFile=None):
 	}
 
 	flagsDict = {
+		"Player1_Turn": Player1_Turn,
 		"orderDetermined": orderDetermined,
 		"readyToStart": readyToStart,
 		"firstTurn": firstTurn,
@@ -1115,9 +1238,8 @@ def createGameWindow(adminID, language=None, gameFile=None):
 		"spritesAltered": spritesAltered,
 		"Player1TileClicked": Player1TileClicked,
 		"Player2TileClicked": Player2TileClicked,
-		"P1NameEntered": P1NameEntered,
-		"P2NameEntered": P2NameEntered,
-		"FileNameEntered": FileNameEntered
+		"FileNameEntered": FileNameEntered,
+		"moveNumber": moveNumber
 	}
 
 	gameDict = {
@@ -1128,15 +1250,18 @@ def createGameWindow(adminID, language=None, gameFile=None):
 		'Flags': flagsDict
 	}
 
-	if Player1Dict['Score'] > Player2Dict['Score']:
-		# bleh
-		winner = f"Winner: {Player1Dict['Name']}"
-	elif Player2Dict['Score'] > Player1Dict['Score']:
-		# blah
-		winner = f"Winner: {Player2Dict['Name']}"
+	if gameOver:
+		if Player1Dict['Score'] > Player2Dict['Score']:
+			# bleh
+			winner = f"Winner: {Player1Dict['Name']}"
+		elif Player2Dict['Score'] > Player1Dict['Score']:
+			# blah
+			winner = f"Winner: {Player2Dict['Name']}"
+		else:
+			# update to reflect it's a tie
+			winner = 'Tie'
 	else:
-		# update to reflect it's a tie
-		winner = 'Tie'
+		winner = ''
 
 	with open(os.path.join(os.path.dirname(__file__), f'../data\\{FileName}.json'), 'w') as f:
 		# write gameInfo to file
@@ -1151,29 +1276,7 @@ def createGameWindow(adminID, language=None, gameFile=None):
 	with open(os.path.join(os.path.dirname(__file__), '../data\\GameData.json'), 'w') as f:
 		# write updated info
 		json.dump(data, f, indent=4)
-	'''
-	save game here:
-	
-	gameBoard, TileBag, Player1, Player2 are items to save after game completion ✅
-	
-	closing window mid-game must be fixed, in order to then allow for game to be saved ✅
-	
-	will need to save boolean variables as well ✅
-	
-	after saving, you should put file name into games database.
-	
-	take in player names before closing, here's how that goes: ✅
-	
-	pg.QUIT triggers, players input name one by one, admin password entered, then window closes and save func executes ✅
-	
-	there's likely something that I'm not thinking of and am missing, but I cannot think of it right now. Keep checking
-	as you go along and I'm sure you'll stumble across it. Mess around with test.json and save to there until error-free
-	
-	also need to fix the damn top level windows and figure out how the hell you're meant to use them... might need to 
-	just re-design the entire main window to be honest because it's not looking pretty. I'll just V2 everything honestly
-	and get on with it, might take a couple days but screw it. Will need to start balancing phys/fm/cs theory/skel prog
-	though because otherwise I am going to get: yells from wells, disappointed looks from ken/brown/zaman/moran, and I 
-	will also fail my exams 💀
-	
-	It's 23:35 @ 7 Apr, I need to sleep brah. night.
-	'''
+
+	with sql.connect(os.path.join(os.path.dirname(__file__), '../ScrabbleTournamentGame.db')) as conn:
+		cursor = conn.cursor()
+		cursor.execute('''UPDATE Games SET fileName=?, result=? WHERE gameID=?''', (FileName, winner, gameID,))

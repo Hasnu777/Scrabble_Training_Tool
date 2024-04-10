@@ -1,16 +1,19 @@
 from windows.windowsTemplate import *
 import sqlite3 as sql
 from CTkMessagebox import CTkMessagebox
+import os
 
 LoggedIn = False
 username = None
 user_id = None
 
 logInWindow = App(320, 180, 'Log In')
+logInWindow.geometry(f"320x180+{logInWindow.winfo_screenwidth()//2-160}+{logInWindow.winfo_screenheight()//2-90}")
 logInWindow.resizable(False, False)
 
 
 def destroy_logInWindow():
+	logInWindow.wm_withdraw()
 	logInWindow.quit()
 
 
@@ -55,9 +58,9 @@ def CreateUser():
 
 	if len(usernameGiven) != 0:
 		try:
-			with sql.connect('scrabbleTrainingTool.db') as conn:
+			with sql.connect(os.path.join(os.path.dirname(__file__), '../ScrabbleTournamentGame.db')) as conn:
 				conn.cursor().execute(
-					f"INSERT INTO users (username, password) VALUES ('{usernameGiven}', '{password}')")
+					f"INSERT INTO Administrators (username, password) VALUES ('{usernameGiven}', '{password}')")
 				# conn.cursor().execute(
 				# 	f'SELECT * FROM users'
 				# )
@@ -86,9 +89,9 @@ def LogIn():
 	usernameEntered = UsernameEntry.entry.get()
 	passwordEntered = PasswordEntry.entry.get()
 
-	with sql.connect('scrabbleTrainingTool.db') as conn:
+	with sql.connect(os.path.join(os.path.dirname(__file__), '../ScrabbleTournamentGame.db')) as conn:
 		cur = conn.cursor()
-		cur.execute(f"SELECT username FROM users WHERE username='{usernameEntered}' AND password='{passwordEntered}';")
+		cur.execute(f"SELECT username FROM Administrators WHERE username='{usernameEntered}' AND password='{passwordEntered}';")
 		if not cur.fetchone():
 			CTkMessagebox(title='Error!', message='Incorrect username or password given.')
 		else:
@@ -98,7 +101,7 @@ def LogIn():
 			global username
 			username = usernameEntered
 			global user_id
-			user_id = cur.execute(f"SELECT id FROM users WHERE username='{username}';").fetchone()[0]
+			user_id = cur.execute(f"SELECT adminID FROM Administrators WHERE username='{username}';").fetchone()[0]
 			destroy_logInWindow()
 
 

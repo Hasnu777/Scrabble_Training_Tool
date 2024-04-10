@@ -1,10 +1,11 @@
 from windows.windowsTemplate import *
-from windows import homescreen_window
+# from windows import homescreen_window
 
 Exists = False
 
 
-def destroyViewDictionaryWindow(window, master):
+def destroyViewDictionaryWindow(window):
+    global Exists
     window.destroy()
     Exists = False
 
@@ -32,3 +33,8 @@ def createViewDictionaryWindow(master):
     viewDictionaryWindow.attributes("-topmost", True)
     # lockToViewDictionaryWindow(master=master)
     # return viewDictionaryWindow
+
+
+'''
+Add in functionality for dictionary window. Described it's usage/function on Family GC whatsapp group.
+'''
