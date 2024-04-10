@@ -970,6 +970,11 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 										addToGameHistory(gameID, moveNumber, Player2_ID, wordsCreatedString, score, exchangeOccurring, bool(len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0))
 									else:
 										addToGameHistory(gameID, moveNumber, Player1_ID, wordsCreatedString, score, exchangeOccurring, bool(len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0))
+									if blankTilesInPlay == 0:
+										selectLetterToReplace.kill()
+									else:
+										selectLetterToReplace.disable()
+										selectLetterToReplace.hide()
 									moveNumber += 1
 									movesMade = []
 									for i, row in enumerate(wordsCreated):
@@ -1065,11 +1070,6 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 				if event.ui_element == selectLetterToReplace:
 					movesMade, blankTileClicked, gameBoard = swapBlankToLetter(movesMade, event.text, TileBag.getLanguage(), gameBoard)
 					blankTilesInPlay -= 1
-					if blankTilesInPlay == 0:
-						selectLetterToReplace.kill()
-					else:
-						selectLetterToReplace.disable()
-						selectLetterToReplace.hide()
 					blankTileClicked = False
 					mustSwapBlank = False
 
