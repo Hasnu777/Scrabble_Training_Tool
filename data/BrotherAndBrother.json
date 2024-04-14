@@ -165,7 +165,7 @@
             " ",
             "TL",
             "O",
-            " ",
+            "Y",
             " ",
             "TL",
             " "
@@ -213,9 +213,9 @@
             " ",
             "DL",
             " ",
-            "DL",
-            " ",
-            " ",
+            "F",
+            "O",
+            "B",
             " ",
             "DW",
             " ",
@@ -231,7 +231,7 @@
             " ",
             " ",
             " ",
-            "TL",
+            "N",
             " ",
             " ",
             " ",
@@ -266,7 +266,7 @@
             [
                 "I",
                 1,
-                9
+                8
             ],
             [
                 "K",
@@ -276,7 +276,7 @@
             [
                 "O",
                 1,
-                6
+                5
             ],
             [
                 "Q",
@@ -326,7 +326,7 @@
             [
                 "N",
                 1,
-                1
+                0
             ],
             [
                 "Y",
@@ -361,7 +361,7 @@
             [
                 "L",
                 1,
-                4
+                3
             ],
             [
                 "E",
@@ -386,14 +386,14 @@
             [
                 "R",
                 1,
-                5
+                4
             ],
             [
                 "A",
                 1,
                 7
             ],
-            5
+            6
         ],
         "language": "English"
     },
@@ -401,16 +401,16 @@
         "Name": "AsadShah",
         "Rack": [
             "T",
-            "Y",
+            "O",
             "T",
             "N",
             "N",
             "C",
             "J"
         ],
-        "Score": 40,
+        "Score": 81,
         "Timer": {
-            "Time Left": 1377,
+            "Time Left": 1314,
             "Overtime": false
         }
     },
@@ -419,15 +419,15 @@
         "Rack": [
             "G",
             "F",
-            "F",
+            "N",
             "R",
-            "O",
-            "B",
-            "N"
+            "I",
+            "R",
+            "L"
         ],
-        "Score": 30,
+        "Score": 55,
         "Timer": {
-            "Time Left": 1439,
+            "Time Left": 1396,
             "Overtime": false
         }
     },
@@ -451,6 +451,6 @@
         "Player1TileClicked": false,
         "Player2TileClicked": false,
         "FileNameEntered": true,
-        "moveNumber": 3
+        "moveNumber": 5
     }
 }

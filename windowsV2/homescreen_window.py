@@ -4,6 +4,7 @@ from CTkMessagebox import CTkMessagebox
 import os
 import sqlite3 as sql
 from windows import viewRulesWindow, viewDictionaryWindow
+import json
 
 '''Important Variables'''
 language = None
@@ -124,25 +125,49 @@ newGame_Button.place(x=80, y=174)
 
 loadGame = tabview.add("Load Game")
 
-enterFileName = ctk.CTkEntry(loadGame, placeholder_text='Enter file name...')
-enterFileName.place(x=75, y=20)
+gameFiles = []
+
+with sql.connect(os.path.join(os.path.dirname(__file__), '../ScrabbleTournamentGame.db')) as conn:
+	cursor = conn.cursor()
+	cursor.execute('SELECT fileName FROM Games')
+	files = cursor.fetchall()
+	for file in files:
+		if file[0] is not None and file[0] != '':
+			gameFiles.append(file[0])
+
+# with open(os.path.join(os.path.dirname(__file__), '../data/GameData.json')) as f:
+# 	gameData = json.load(f)
+# 	gameFiles = list(gameData.keys())
+
+selectFileName = ctk.CTkComboBox(loadGame, values=gameFiles)
+selectFileName.place(x=75, y=20)
+
+
+def getFileName():
+	global Filename
+	Filename = selectFileName.get()
+	destroyHomescreenWindow()
+#
+#
+# enterFileName = ctk.CTkEntry(loadGame, placeholder_text='Enter file name...')
+# enterFileName.place(x=75, y=20)
 
 
 # Providing list shouldn't be too hard: get all file names via SQL connection, create list out of cursor.fetchall() and shove into CTkComboBox() then alter getFile() to handle that appropriately
-def getFile():  # can't test this since I haven't made the SQL table, but I don't see why it wouldn't work
-	global Filename
-	with sql.connect(os.path.join(os.path.dirname(__file__), '../ScrabbleTournamentGame.db')) as conn:
-		cursor = conn.cursor()
-		cursor.execute('SELECT fileName FROM Games where fileName=?', (enterFileName.get(),))
-		nameFetched = cursor.fetchone()[0]
-		if nameFetched != '':
-			Filename = nameFetched
-			# homescreen.destroy()
-		else:
-			CTkMessagebox(message='Error: Invalid file name', title='File Name Error')
+# def getFile():  # can't test this since I haven't made the SQL table, but I don't see why it wouldn't work
+# 	global Filename
+# 	with sql.connect(os.path.join(os.path.dirname(__file__), '../ScrabbleTournamentGame.db')) as conn:
+# 		cursor = conn.cursor()
+# 		cursor.execute('SELECT fileName FROM Games where fileName=?', (enterFileName.get(),))
+# 		nameFetched = cursor.fetchone()[0]
+# 		if nameFetched != '':
+# 			Filename = nameFetched
+# 			# homescreen.destroy()
+# 		else:
+# 			CTkMessagebox(message='Error: Invalid file name', title='File Name Error')
 
 
-loadGame_Button = ctk.CTkButton(loadGame, width=80, text='Load Game', command=getFile, fg_color="#8f563b", hover_color="#7b4932")
+loadGame_Button = ctk.CTkButton(loadGame, width=80, text='Load Game', command=getFileName, fg_color="#8f563b", hover_color="#7b4932")
 loadGame_Button.place(x=105, y=70)
 
 # '''View Info Tab'''
@@ -155,3 +180,7 @@ loadGame_Button.place(x=105, y=70)
 def run():
 	homescreen.mainloop()
 	homescreen.destroy()
+
+# TODO: go through loadgame and fix errors e.g. game not starting until you click fill rack and pause button to
+#  pause/resume, player timer not loading until its their turn, i think there's some score allocation issue as well? Look into this56
+

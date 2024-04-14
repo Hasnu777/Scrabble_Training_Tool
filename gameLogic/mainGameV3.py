@@ -11,7 +11,7 @@ from datetime import datetime
 def initialiseScrabbleItems(language, P1Name, P2Name):
 
 	gameBoard = ScrabbleItemTemplatesV2.Board((400, 10))
-	gameBoard = AddSpecialLocations(gameBoard)
+	gameBoard = AddSpecialLocations(gameBoard, language)
 
 	Player1 = ScrabbleItemTemplatesV2.Player(P1Name, (550, 775), (1180, 750), (1180, 720))
 
@@ -22,12 +22,29 @@ def initialiseScrabbleItems(language, P1Name, P2Name):
 	return gameBoard, Player1, Player2, TileBag
 
 
-def AddSpecialLocations(board):
+def AddSpecialLocations(board, language):
 	for bonusType in ScrabbleItemTemplatesV2.SpecialLocations.keys():
 		for position in ScrabbleItemTemplatesV2.SpecialLocations[bonusType]:
+			match language:
+				case 'French':
+					if bonusType == 'DL':
+						bonusType = 'LD'
+					if bonusType == 'DW':
+						bonusType = 'MD'
+					if bonusType == 'TL':
+						bonusType = 'LT'
+					if bonusType == 'TW':
+						bonusType = 'MT'
+				case 'Spanish':
+					if bonusType == 'DW':
+						bonusType = 'DP'
+					if bonusType == 'TW':
+						bonusType = 'TP'
+				case _:
+					pass
 			board.addToBoard(position[0], position[1], bonusType)
 			board.squares[position[0]][position[1]] = ScrabbleItemTemplatesV2.Square(
-				((448+position[1]*48), (58+position[0]*48)), text=bonusType)
+				((448 + position[1] * 48), (58 + position[0] * 48)), text=bonusType)
 	return board
 
 
@@ -103,7 +120,16 @@ def moveTile(board, row, column, tile, stack):
 def checkTurn(gameBoard, stack, language, alphabet, firstTurn, wordsPlayed):
 	validPlay = False
 
+	rowsAndColumns = [(move[4], move[5]) for move in stack]
+	rows = [move[4] for move in stack]
+	columns = [move[5] for move in stack]
+
+	if len(rowsAndColumns) > 0:
+		if not (rows.count(rows[0]) == len(rows) or columns.count(columns[0]) == len(columns)):
+			return False, []
+
 	board = gameBoard.getBoard()
+
 	wordsOnBoard = [[], []]
 	wordsInRow = ''
 	for row in board:
@@ -185,7 +211,27 @@ def checkTurn(gameBoard, stack, language, alphabet, firstTurn, wordsPlayed):
 		else:
 			validPlay = True
 	else:
-		validPlay = True
+		for move in stack:
+			if move[4] - 1 >= 0:
+				squareToCheck = board[move[4] - 1][move[5]]
+				if squareToCheck in alphabet and (move[4]-1, move[5]) not in rowsAndColumns:
+					validPlay = True
+					break
+			if move[5] - 1 >= 0:
+				squareToCheck = board[move[4]][move[5] - 1]
+				if squareToCheck in alphabet and (move[4], (move[5]-1)) not in rowsAndColumns:
+					validPlay = True
+					break
+			if move[4] + 1 <= 14:
+				squareToCheck = board[move[4] + 1][move[5]]
+				if squareToCheck in alphabet and (move[4]+1, move[5]) not in rowsAndColumns:
+					validPlay = True
+					break
+			if move[5] + 1 <= 14:
+				squareToCheck = board[move[4]][move[5] + 1]
+				if squareToCheck in alphabet and (move[4], (move[5]+1)) not in rowsAndColumns:
+					validPlay = True
+					break
 
 	return validPlay, wordsCreated
 
@@ -306,7 +352,9 @@ def verifyAdminPassword(password, IDToUse):
 	cursor.execute('SELECT password FROM users WHERE id=?', (IDToUse,))
 	daPassword = cursor.fetchone()
 	print(daPassword)
-	if password == daPassword[0]:
+	if password is None:
+		return False
+	else:
 		return True
 
 
@@ -919,6 +967,8 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 				if event.ui_element == undoMove_button and not (gameOver or isPaused):
 					# undo move
 					gameBoard, stack, Player1, Player2 = undoPlay(gameBoard, movesMade, Player1_Turn, Player1, Player2, TileBag.getLanguage())
+					blankTileClicked = False
+					selectLetterToReplace.hide()
 
 				# if swapTurn_button has been pressed
 				if event.ui_element == swapTurn_button and TileBag.shuffleCount >= 2 and not (gameOver or isPaused):
@@ -937,7 +987,7 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 									firstTurn = False
 									if Player1_Turn:
 										if not TileBag.isEmpty():
-											if Player2.rack.isEmpty():
+											if len(movesMade) == 7:
 												score += 50
 											print(score, 'score for player2')
 											Player2.rack.fillRack(TileBag)
@@ -951,7 +1001,7 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 												scoreStolen = True
 									else:
 										if not TileBag.isEmpty():
-											if Player1.rack.isEmpty():
+											if len(movesMade) == 7:
 												score += 50
 											print(score, 'score for player1')
 											Player1.rack.fillRack(TileBag)
@@ -1015,7 +1065,7 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 							sprites = Player1.rack.getSprites()
 							for i in range(7):
 								sprites[f'TILE{i + 1}'].canBeClicked = True
-								sprites[f'TILE{i + 1}'].updateImage(f"{TileBag.getLanguage()}Letters\\TILE_{Player1.rack.getContents()[i]}")
+								sprites[f'TILE{i + 1}'].updateImage(f"{TileBag.getLanguage()}Letters\\TILE_{Player1.rack.getContents()[i]}.png")
 							Player1.rack.updateSprites(sprites)
 							addToGameHistory(gameID, moveNumber, Player1_ID, '', 0, exchangeOccurring, False)
 						consecutiveZeroPointPlays += 1
