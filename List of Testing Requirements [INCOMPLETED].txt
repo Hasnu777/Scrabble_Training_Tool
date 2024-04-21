@@ -1,0 +1,49 @@
+main.py:
+
+1. Tables are being created properly ✔
+2. Table creation statements are not executed if table exists ✔
+3. adminID successfully fetched from LogIn_Window if logs in, else program exits with code 0 ✔
+4. mainGameV3.py is run with language if selected, or file name if selected, or program exits with code 0 ✔
+5. ?
+
+LogIn_Window.py:
+
+1. Username for creation matches length requirement & informs user of failure to meet requirement ✔
+2. Username for creation matches alphabetical/alphanumerical requirement & informs of failure to meet requirement ✔
+3. Password for creation matches length requirement & informs user of failure to meet requirement ✔
+4. Show Password button works ✔
+5. Admin profile creation works & user is informed of successful creation ✔
+6. Admin profile creation handles attempted creation with duplicate usernames and informs of error ✔
+7. Admin profile creation handles missing values for username/password ✔
+8. User informed of incorrect details for admin profile login ✔
+9. User logs in successfully if correct details provided ✔
+10. adminID successfully retrieved after admin profile login ✔
+11. ?
+
+HomeScreen_Window.py:
+
+1. Player names retrievable from text entry boxes & updated into variable upon clicking "Enter" ✔
+2. Language retrievable from dropdown menu & updated into variable upon clicking "Select" ✔
+3. User informed of missing username ✔
+4. In case "Select" isn't clicked for language, default language is used (English) & updated into variable ✔
+5. User informed of username repetition ✔
+6. Game window launches after "start new game" button is clicked ✔
+7. Game filename retrievable from dropdown menu and updated into variable ✔
+8. Default game filename value is retrieved if the user doesn't go through dropdown menu & selects a name ✔
+9. Game window launches after "load game" button is clicked ✔
+10. "View Rules" button works ✔
+11. Ensure that EITHER filename is updated OR player names and language is updated ✔
+12. ?
+
+ViewRules_Window.py:
+
+1. Window opens after button click ✔
+2. Only one instance of the window opens ✔
+3. Window opens each of the selections ✔
+4. Open button will open the default value in the dropdown menu, even if the menu hasn't been interacted with ✔
+5. After closing, window can be re-opened ✔
+6. After closing, only one instance of the window can be opened ✔
+7. Clicking the "view rules" button will focus the view rules window if it is already open ✔
+8. ?
+
+mainGameV3.py (ScrabbleItemTemplatesV2.py):

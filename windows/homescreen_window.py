@@ -1,5 +1,5 @@
 from windows.windowsTemplate import *
-from windows import viewProfile_window, mainSettings_window, createNewGameSettings, loadGame, viewSavedGamesWindow, viewRulesWindow, viewDictionaryWindow
+from windows import viewProfile_window, mainSettings_window, createNewGameSettings, loadGame, viewSavedGamesWindow, ViewRules_Window, viewDictionaryWindow
 from PIL import Image
 import os
 
@@ -121,7 +121,7 @@ BottomFrame.images['RulesIcon'] = RulesIcon
 
 def viewRules():
     if BottomFrame.topLevelWindows['viewRulesWindow'] is None:
-        BottomFrame.topLevelWindows['viewRulesWindow'] = viewRulesWindow.createViewRulesWindow(homescreen)
+        BottomFrame.topLevelWindows['viewRulesWindow'] = ViewRules_Window.createViewRulesWindow(homescreen)
 
 
 BottomFrame.topLevelWindows['viewRulesWindow'] = None

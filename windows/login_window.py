@@ -54,7 +54,7 @@ def CreateUser():
 	password = PasswordEntry.entry.get()
 	idCreated = None
 	if not usernameGiven.isalpha() or not usernameGiven.isalnum():
-		CTkMessagebox(title='Error', message='Invalid username provided.')
+		CTkMessagebox(title='Error', message='Invalid username provided.', width=160, height=80, sound=True)
 
 	if len(usernameGiven) != 0:
 		try:
@@ -70,9 +70,9 @@ def CreateUser():
 				# 	convertToAdmin(username, password)
 
 		except sql.IntegrityError:
-			CTkMessagebox(title='Error!', message='Username taken.')
+			CTkMessagebox(title='Error!', message='Username taken.', width=160, height=80, sound=True)
 	else:
-		CTkMessagebox(title='Error', message='Invalid username provided.')
+		CTkMessagebox(title='Error', message='Invalid username provided.', width=160, height=80, sound=True)
 
 
 # def convertToAdmin(adminUsername, adminPassword):
@@ -93,7 +93,7 @@ def LogIn():
 		cur = conn.cursor()
 		cur.execute(f"SELECT username FROM Administrators WHERE username='{usernameEntered}' AND password='{passwordEntered}';")
 		if not cur.fetchone():
-			CTkMessagebox(title='Error!', message='Incorrect username or password given.')
+			CTkMessagebox(title='Error!', message='Incorrect username or password given.', width=160, height=80, sound=True)
 		else:
 			logInLabel.label.configure(text='Logged in successfully')
 			global LoggedIn
