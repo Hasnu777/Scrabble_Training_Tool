@@ -200,9 +200,11 @@ class Rack(pg.sprite.Sprite):
 
 	# Fills up the rack with tiles from the tile bag
 	def fillRack(self, tileBag):
+		print('filling rack')
 		# Checks if there are empty spots in the rack AND if there are tiles in the tile bag
 		# Indefinite iterative loop used due to random selection of letters
 		while '' in self.__contents and not tileBag.isEmpty():
+			print('entered while loop')
 			letters = tileBag.bag[:-1]  # Removes the isEmpty() flag from the bag array of the TileBag object
 			letter = random.choice(letters)  # Picks out a random letter from the tile bag
 			indexPosition = tileBag.bag.index(letter)  # Takes the index position of the letter in the bag array

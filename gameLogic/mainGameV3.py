@@ -6,6 +6,7 @@ import sqlite3 as sql
 import os
 from gameLogic import ScrabbleItemTemplatesV2
 from datetime import datetime
+from CTkMessagebox import CTkMessagebox
 
 
 # Creates the Scrabble objects
@@ -89,10 +90,10 @@ def pickTile(tileBag):
 
 # Used to swap Player attributes
 def swapPlayers(player1, player2):
-	player1.name, player2.name = player2.name, player1.name  # Swaps the names around
-	player1.rack, player2.rack = player2.rack, player1.rack  # Swaps the racks around
-	player1.timer, player2.timer = player2.timer, player1.timer  # Swaps the timers around
-	player1.score, player2.score = player2.score, player1.score  # Swaps the scores around
+	# player1.name, player2.name = player2.name, player1.name  # Swaps the names around
+	# player1.rack, player2.rack = player2.rack, player1.rack  # Swaps the racks around
+	# player1.timer, player2.timer = player2.timer, player1.timer  # Swaps the timers around
+	# player1.score, player2.score = player2.score, player1.score  # Swaps the scores around
 	return player2, player1
 
 
@@ -160,9 +161,10 @@ def checkTurn(gameBoard, stack, language, alphabet, firstTurn, wordsPlayed):
 	if len(rowsAndColumns) > 0:  # Checks if tiles have been placed, shown by rows and columns being retrieved
 		# Checks if all rows are the same, or all columns are the same. Done to see if tiles are placed in one string.
 		if not (rows.count(rows[0]) == len(rows) or columns.count(columns[0]) == len(columns)):
-			return False, []  # Returns False for validPlay, and an empty list to show no words were retrieved
+			return False, [[], []]  # Returns False for validPlay, and an empty list to show no words were retrieved
 	else:
-		return False, []  # Returns False for validPlay, and an empty list to show no words were retrieved
+		return True, [[], []]  # Returns True for validPlay, and an empty list to show no words were retrieved
+		# True is returned because this shows that the user has skipped their turn & not made any moves
 
 	board = gameBoard.getBoard()  # Gets the board
 
@@ -258,7 +260,7 @@ def checkTurn(gameBoard, stack, language, alphabet, firstTurn, wordsPlayed):
 			if not validPlay:  # Triggers if a tile hasn't been placed on the center square
 				print('no tile detected on center square')
 				print(validPlay, 'for valid play now')
-				return validPlay, []  # returns False for validPlay and an empty list, since words placed don't matter
+				return validPlay, [[], []]  # returns False for validPlay and an empty list, since words placed don't matter
 		else:  # Triggers if no tiles were placed
 			validPlay = True  # If the player has placed no tiles, they're skipping their turn.
 	else:
@@ -595,7 +597,9 @@ def loadGame(file):
 	# For loops to go through each square in the board, to create tile objects for the board
 	for row in range(15):
 		for column in range(15):
+			# Checking if the square contains a tile letter
 			if gameBoard.getBoard()[row][column] in TileBag.alphabet:
+				# Creating a Tile object for that tile
 				tile = ScrabbleItemTemplatesV2.Tile(
 					f'{language}Letters\\TILE_{gameBoard.getBoard()[row][column]}.png',
 					(448+column*48, 58+row*48),
@@ -620,6 +624,10 @@ def loadGame(file):
 	Player1.score.updateScore(P1Score)  # Update Player 1's score
 	Player1.timer.current_seconds = P1TimeLeft  # Update Player 1's timer
 	Player1.timer.isOvertime = P1Overtime  # Update the overtime status of Player 1's timer
+	if P1Overtime:
+		Player1.timer.updateOvertimeTimer()
+	else:
+		Player1.timer.updateTimer()
 
 	# Must be 2 because a game starts after a tile bag has been shuffled & a game can only be saved after being started.
 	P2Name = gameData['Player 2']['Name']
@@ -634,6 +642,11 @@ def loadGame(file):
 	Player2.score.updateScore(P2Score)  # Update Player 2's score
 	Player2.timer.current_seconds = P2TimeLeft  # Update Player 2's timer
 	Player2.timer.isOvertime = P2Overtime  # Update the overtime status of Player 2's timer
+
+	if P2Overtime:
+		Player2.timer.updateOvertimeTimer()
+	else:
+		Player2.timer.updateTimer()
 
 	flags = list(gameData['Flags'].values())  # Take the game flags from the game file's dictionary
 
@@ -735,7 +748,7 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 
 	running = True
 
-	flags = [True, False, False, True, False, 2, False, False, False, 0, False, False, False, False, False, False, False, False, False, 0]
+	flags = [True, False, False, True, False, 2, False, False, False, 0, False, False, False, False, False, False, False, False, False, 1]
 
 	if newGameLang is not None:
 		gameBoard, Player1, Player2, TileBag = initialiseScrabbleItems(newGameLang, P1Name, P2Name)
@@ -747,15 +760,14 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 	Player1_ID = getPlayerID(P1Name)
 	Player2_ID = getPlayerID(P2Name)
 
+	gameID = None
+
+	if newGameLang is None:
+		gameID = getGameID(gameFile)
+		print(gameID, 'gameID after loading game')
+
 	print(Player1_ID, 'player1 id')
 	print(Player2_ID, 'player2 id')
-
-	if newGameLang is not None:
-		gameID = createGameRecord(adminID, Player1_ID, Player2_ID)
-	else:
-		gameID = getGameID(gameFile)
-
-	print(gameID, 'game id')
 
 	Player1_Turn = flags[0]
 	orderDetermined = flags[1]
@@ -816,7 +828,7 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 	# getPlayer2Name.hide()
 	# P2Name = P2Name
 
-	enterFileNameLabel = ScrabbleItemTemplatesV2.Text((1252, 300), (200, 50), 'Enter File Name:')
+	enterFileNameLabel = ScrabbleItemTemplatesV2.Text((1252, 300), (200, 50), 'Enter File Name (min. 6 characters):')
 
 	enterFileName = py_gui.elements.ui_text_entry_line.UITextEntryLine(relative_rect=pg.Rect((1250, 325), (200, 30)), manager=UIManager)
 	enterFileName.hide()
@@ -847,10 +859,11 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 			shuffleBag_button.enable()
 
 		# If the tile bag has been shuffled, the shuffleBag_button is removed, and fillRack_button & swapTurn_button is enabled
-		if TileBag.shuffleCount >= 2:
+		if TileBag.shuffleCount >= 2 and gameID is None:
 			shuffleBag_button.kill()
 			# fillRack_button.enable()
 			# swapTurn_button.enable()
+
 
 		if mustSwapBlank and not selectLetterToReplace.is_enabled:
 			# selectLetterToReplace.show()
@@ -1020,7 +1033,13 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 
 				if event.ui_element == getFileName:
 					FileName = enterFileName.get_text()
-					FileNameEntered = True
+					if len(FileName) > 5 and FileName.isalnum():
+						FileNameEntered = True
+					else:
+						if len(FileName) <= 5:
+							CTkMessagebox(title='Error!', message='Filename must be at least 6 characters long.', width=160, height=80, sound=True)
+						if not FileName.isalnum():
+							CTkMessagebox(title='Error!', message='Invalid filename.', width=160, height=80, sound=True)
 					print(FileName, FileNameEntered)
 
 				if event.ui_element == cancelClose_button:
@@ -1085,6 +1104,8 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 					readyToStart = True
 					fillRack_button.disable()
 					PauseButton.enable()
+					if newGameLang is not None:
+						gameID = createGameRecord(adminID, Player1_ID, Player2_ID)
 
 				# if shuffleBag_button has been pressed
 				if event.ui_element == shuffleBag_button:
@@ -1299,13 +1320,13 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 		# Blit the rack and tiles for whose turn it is
 		if Player1_Turn and not gameOver:
 			gameWindow.blit(Player1.rack.getImage(), (Player1.rack.getRectCoordinates()))
-			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player1.name}').text, (568, 875))
+			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player1.name} - Player 1').text, (568, 875))
 			# Player1.rack.drawGroup(gameWindow)
 			Player1.rack.getGroup().draw(gameWindow)
 		elif not Player1_Turn and not gameOver:
 
 			gameWindow.blit(Player2.rack.getImage(), (Player2.rack.getRectCoordinates()))
-			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player2.name}').text, (568, 875))
+			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player2.name} - Player 2').text, (568, 875))
 			# Player2.rack.drawGroup(gameWindow)
 			Player2.rack.getGroup().draw(gameWindow)
 
@@ -1318,15 +1339,15 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 
 		if revealOtherRack and Player1_Turn:
 			gameWindow.blit(Player2.rack.getImage(), (1050, 775))
-			gameWindow.blit(ScrabbleItemTemplatesV2.Text((1068, 875), (200, 100), f'{Player2.name}').text, (1068, 875))
-			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player1.name}').text, (568, 875))
+			gameWindow.blit(ScrabbleItemTemplatesV2.Text((1068, 875), (200, 100), f'{Player2.name} - Player 2').text, (1068, 875))
+			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player1.name} - Player 1').text, (568, 875))
 			Player2.rack.getGroup().draw(gameWindow)
 			gameWindow.blit(Player1.rack.getImage(), Player1.rack.getRectCoordinates())
 			Player1.rack.getGroup().draw(gameWindow)
 		elif revealOtherRack and not Player1_Turn:
 			gameWindow.blit(Player1.rack.getImage(), (1050, 775))
-			gameWindow.blit(ScrabbleItemTemplatesV2.Text((1068, 875), (200, 100), f'{Player1.name}').text, (1068, 875))
-			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player2.name}').text, (568, 875))
+			gameWindow.blit(ScrabbleItemTemplatesV2.Text((1068, 875), (200, 100), f'{Player1.name} - Player 1').text, (1068, 875))
+			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player2.name} - Player 2').text, (568, 875))
 			Player1.rack.getGroup().draw(gameWindow)
 			gameWindow.blit(Player2.rack.getImage(), Player2.rack.getRectCoordinates())
 			Player2.rack.getGroup().draw(gameWindow)
@@ -1457,3 +1478,5 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 	with sql.connect(os.path.join(os.path.dirname(__file__), '../ScrabbleTournamentGame.db')) as conn:
 		cursor = conn.cursor()
 		cursor.execute('''UPDATE Games SET fileName=?, result=? WHERE gameID=?''', (FileName, winner, gameID,))
+
+	CTkMessagebox(title='Success!', message='Game saved successfully. Goodbye!')
