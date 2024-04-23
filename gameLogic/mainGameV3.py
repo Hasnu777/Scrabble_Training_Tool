@@ -295,9 +295,9 @@ def checkTurn(gameBoard, stack, language, alphabet, firstTurn, wordsPlayed):
 
 
 # Undoes the play made by the player by recalling tiles and replacing the squares on the board
-def undoPlay(board, stack, Player1_Turn, Player1, Player2, language):
+def undoPlay(board, stack, Player, language):
 	if not stack:  # If the stack is empty, there's nothing to do
-		return board, stack, Player1, Player2
+		return board, stack, Player
 	else:
 		rackPosition, tile, squareType, square, row, column = stack.pop()  # Gets info out of the last stack entry
 		board.removeFromGroup(tile)  # Removes the tile from the board
@@ -311,15 +311,12 @@ def undoPlay(board, stack, Player1_Turn, Player1, Player2, language):
 			# Using this instead of transformImage() to avoid unwanted deformation when enlarging the image.
 			tile.updateImage(f'{language}Letters\\TILE_{tile.getLetter()}.png')
 		board.getBoard()[row][column] = squareType  # Updates the board array to hold the square type
-		if Player1_Turn:  # Checks if Player1 made the play
-			Player1.rack.addToRack(rackPosition, tile)  # Adds the tile to Player1's rack at the selected rack position
-		else:  # Triggers if player 2 made the play
-			Player2.rack.addToRack(rackPosition, tile)  # Adds the tile to Player2's rack at the selected rack position
+		Player.rack.addToRack(rackPosition, tile)  # Adds the tile to the player's rack at the selected rack position
 		# Below line is used to call the subroutine again, making it recursive. Recursion is used to undo all tile
 		# placements made by the player. This ends up returning board, stack, Player1, Player2 after undoing the first
 		# tile placement, which is the first stack entry. It is dealt with last because .pop() takes out items from the
 		# end of the array to the front.
-		return undoPlay(board, stack, Player1_Turn, Player1, Player2, language)
+		return undoPlay(board, stack, Player, language)
 
 
 # def undoMove(board, stack, PlayerTurn, Player1, Player2):
@@ -564,7 +561,7 @@ def calculateScore(wordsCreated, movesMade, lexicon):  # (rackPosition, tile, sq
 def applyPenalties(player, scoreStolen, lexicon):
 	if player.timer.isOvertime:
 		# Remove 10 points for every used minute of the overtime timer
-		scoreToRemove = -10 * (10 - player.timer.current_seconds // 60)  # Get the decreasing value
+		scoreToRemove = -10 * (10 - player.timer.currentSeconds // 60)  # Get the decreasing value
 		player.score.updateScore(scoreToRemove)  # Updates the score
 
 	if not scoreStolen:
@@ -577,9 +574,13 @@ def applyPenalties(player, scoreStolen, lexicon):
 # Read the game file and load in the information
 def loadGame(file):
 
-	# Opens the game file and extracts the game dictionary
-	with open(os.path.join(os.path.dirname(__file__), f'../data\\{file}.json')) as f:
-		gameData = json.load(f)
+	# Tries to open game file
+	try:
+		# Opens the game file and extracts the game dictionary
+		with open(os.path.join(os.path.dirname(__file__), f'../data\\{file}.json')) as f:
+			gameData = json.load(f)
+	except FileNotFoundError:  # if inp
+		return
 
 	language = gameData['Tile Bag']['language']  # Get the language from the tile bag saved
 
@@ -622,7 +623,7 @@ def loadGame(file):
 	Player1.rack.replaceContents(P1Rack)  # Update the rack of Player 1
 	Player1.rack.fillRackGroup(language, TileBag.lexicon)  # Fill Player 1's rack group
 	Player1.score.updateScore(P1Score)  # Update Player 1's score
-	Player1.timer.current_seconds = P1TimeLeft  # Update Player 1's timer
+	Player1.timer.currentSeconds = P1TimeLeft  # Update Player 1's timer
 	Player1.timer.isOvertime = P1Overtime  # Update the overtime status of Player 1's timer
 	if P1Overtime:
 		Player1.timer.updateOvertimeTimer()
@@ -640,7 +641,7 @@ def loadGame(file):
 	Player2.rack.replaceContents(P2Rack)  # Update the rack of Player 2
 	Player2.rack.fillRackGroup(language, TileBag.lexicon)  # Fill Player 2's rack group
 	Player2.score.updateScore(P2Score)  # Update Player 2's score
-	Player2.timer.current_seconds = P2TimeLeft  # Update Player 2's timer
+	Player2.timer.currentSeconds = P2TimeLeft  # Update Player 2's timer
 	Player2.timer.isOvertime = P2Overtime  # Update the overtime status of Player 2's timer
 
 	if P2Overtime:
@@ -748,12 +749,12 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 
 	running = True
 
-	flags = [True, False, False, True, False, 2, False, False, False, 0, False, False, False, False, False, False, False, False, False, 1]
+	Flags = [True, False, False, True, False, 2, False, False, False, 0, False, False, False, False, False, False, False, False, False, 1]
 
 	if newGameLang is not None:
 		gameBoard, Player1, Player2, TileBag = initialiseScrabbleItems(newGameLang, P1Name, P2Name)
 	elif gameFile is not None:
-		gameBoard, TileBag, Player1, Player2, flags, P1Name, P2Name = loadGame(gameFile)
+		gameBoard, TileBag, Player1, Player2, Flags, P1Name, P2Name = loadGame(gameFile)
 	else:
 		gameBoard, Player1, Player2, TileBag = initialiseScrabbleItems('English', P1Name, P2Name)
 
@@ -769,26 +770,26 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 	print(Player1_ID, 'player1 id')
 	print(Player2_ID, 'player2 id')
 
-	Player1_Turn = flags[0]
-	orderDetermined = flags[1]
-	readyToStart = flags[2]
-	firstTurn = flags[3]
-	invalidPlay = flags[4]
-	blankTilesInPlay = flags[5]
-	mustSwapBlank = flags[6]
-	blankTileClicked = flags[7]
-	exchangeOccurring = flags[8]
-	consecutiveZeroPointPlays = flags[9]
-	finalScoresAndPenaltiesApplied = flags[10]
-	isPaused = flags[11]
-	scoreStolen = flags[12]
-	gameOver = flags[13]
-	revealOtherRack = flags[14]
-	spritesAltered = flags[15]
-	Player1TileClicked = flags[16]
-	Player2TileClicked = flags[17]
-	FileNameEntered = flags[18]
-	moveNumber = flags[19]
+	Player1_Turn = Flags[0]
+	OrderDetermined = Flags[1]
+	ReadyToStart = Flags[2]
+	FirstTurn = Flags[3]
+	InvalidPlay = Flags[4]
+	BlankTilesInPlay = Flags[5]
+	BlankTileDesignationRequired = Flags[6]
+	BlankTileSelected = Flags[7]
+	ExchangeOccurring = Flags[8]
+	ConsecutiveZeroPointPlays = Flags[9]
+	ScoresFinalised = Flags[10]
+	Paused = Flags[11]
+	ScoreStolen = Flags[12]
+	GameOver = Flags[13]
+	RevealOtherRack = Flags[14]
+	SpritesAltered = Flags[15]
+	Player1_TileClicked = Flags[16]
+	Player2_TileClicked = Flags[17]
+	FileNameEntered = Flags[18]
+	MoveNumber = Flags[19]
 
 	PauseButton = py_gui.elements.UIButton(relative_rect=pg.Rect((1480, 20), (100, 50)), text='Pause', manager=UIManager)
 	PauseButton.disable()
@@ -854,44 +855,43 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 		time_delta = clock.tick(30) / 1000.0
 
 		# If players have picked a tile and determined the order, determineOrder_button is killed & shuffleBag_Button is enabled
-		if orderDetermined:
+		if OrderDetermined:
 			determineOrder_button.kill()
 			shuffleBag_button.enable()
 
 		# If the tile bag has been shuffled, the shuffleBag_button is removed, and fillRack_button & swapTurn_button is enabled
 		if TileBag.shuffleCount >= 2 and gameID is None:
-			shuffleBag_button.kill()
 			# fillRack_button.enable()
 			# swapTurn_button.enable()
+			shuffleBag_button.kill()
 
-
-		if mustSwapBlank and not selectLetterToReplace.is_enabled:
+		if BlankTileDesignationRequired and not selectLetterToReplace.is_enabled:
 			# selectLetterToReplace.show()
 			selectLetterToReplace.enable()
 
 		# Going through all events that occur during each tick
 		for event in pg.event.get():
 
-			if consecutiveZeroPointPlays == 6 or gameOver:
-				revealOtherRack = True
+			if ConsecutiveZeroPointPlays == 6 or GameOver:
+				RevealOtherRack = True
 
-				if Player1_Turn and not spritesAltered:
+				if Player1_Turn and not SpritesAltered:
 					Player2.rack.alterSprites()
 					# Player2.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon, (1194, 323))
-					spritesAltered = True
-				elif not Player1_Turn and not spritesAltered:
+					SpritesAltered = True
+				elif not Player1_Turn and not SpritesAltered:
 					Player1.rack.alterSprites()
 					# Player1.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon, (1194, 323))
-					spritesAltered = True
-				if not finalScoresAndPenaltiesApplied:
-					Player1 = applyPenalties(Player1, scoreStolen, TileBag.lexicon)
-					Player2 = applyPenalties(Player2, scoreStolen, TileBag.lexicon)
-					finalScoresAndPenaltiesApplied = True
-					if Player1.timer.current_seconds == 0 and Player1.score.isOvertime:
+					SpritesAltered = True
+				if not ScoresFinalised:
+					Player1 = applyPenalties(Player1, ScoreStolen, TileBag.lexicon)
+					Player2 = applyPenalties(Player2, ScoreStolen, TileBag.lexicon)
+					ScoresFinalised = True
+					if Player1.timer.currentSeconds == 0 and Player1.score.isOvertime:
 						scoreDiff = Player1.score.getScore() - Player2.score.getScore()
 						if scoreDiff > -1:
 							Player2.score.updateScore(scoreDiff+1)
-					if Player2.timer.current_seconds == 0 and Player2.score.isOvertime:
+					if Player2.timer.currentSeconds == 0 and Player2.score.isOvertime:
 						scoreDiff = Player2.score.getScore() - Player1.score.getScore()
 						if scoreDiff > -1:
 							Player2.score.updateScore(scoreDiff+1)
@@ -929,8 +929,10 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 					# disable
 					exchangeTile_button.disable()
 				if undoMove_button.is_enabled == 1:
+					# disable
 					undoMove_button.disable()
 				if PauseButton.is_enabled == 1:
+					# disable
 					PauseButton.disable()
 
 				if event.type == py_gui.UI_BUTTON_PRESSED:
@@ -953,8 +955,8 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 						FileName = enterFileName.get_text()
 						FileNameEntered = True
 
-			if event.type == pg.QUIT and readyToStart:
-				invalidPlay = False
+			if event.type == pg.QUIT and ReadyToStart and not GameOver:
+				InvalidPlay = False
 				if PauseButton.is_enabled == 1:
 					# disable
 					PauseButton.disable()
@@ -967,9 +969,9 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 				if undoMove_button.is_enabled == 1:
 					# disable
 					undoMove_button.disable()
-				if not isPaused and not gameOver:
+				if not Paused and not GameOver:
 					# pause game
-					isPaused = True
+					Paused = True
 				if cancelClose_button.is_enabled == 0:
 					cancelClose_button.show()
 					cancelClose_button.enable()
@@ -994,12 +996,12 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 					getAdminPassword.show()
 					getAdminPassword.enable()
 					enterAdminPassword.set_text_hidden()
-			elif event.type == pg.QUIT and not readyToStart:
+			elif event.type == pg.QUIT and not ReadyToStart:
 				running = False
 				break
 
 			# if user closes the window
-			# if event.type == pg.QUIT and not gameOver:
+			# if event.type == pg.QUIT and not GameOver:
 			#     if getAdminPassword.is_enabled == 0:
 			#         getAdminPassword.show()
 			#         getAdminPassword.enable()
@@ -1065,43 +1067,43 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 					swapTurn_button.enable()
 					exchangeTile_button.enable()
 					undoMove_button.enable()
-					isPaused = False
+					Paused = False
 
-				if event.ui_element == PauseButton and not gameOver:
-					if not isPaused:
+				if event.ui_element == PauseButton and not GameOver:
+					if not Paused:
 						PauseButton.text = 'Resume'
 						PauseButton.rebuild()
 						exchangeTile_button.disable()
 						swapTurn_button.disable()
 						undoMove_button.disable()
-						isPaused = True
+						Paused = True
 					else:
 						PauseButton.text = 'Pause'
 						PauseButton.rebuild()
 						exchangeTile_button.enable()
 						swapTurn_button.enable()
 						undoMove_button.enable()
-						isPaused = False
+						Paused = False
 
-				if event.ui_element == exchangeTile_button and (Player1TileClicked or Player2TileClicked) and not (gameOver or isPaused):
-					blankTileClicked = False
-					mustSwapBlank = False
+				if event.ui_element == exchangeTile_button and (Player1_TileClicked or Player2_TileClicked) and not (GameOver or Paused):
+					BlankTileSelected = False
+					BlankTileDesignationRequired = False
 					selectLetterToReplace.hide()
 					print('exchange button clicked')
-					if Player1TileClicked:
+					if Player1_TileClicked:
 						print('player 1 initiating exchange')
-						Player1, TileBag, Player1TileClicked = findTileToExchange(Player1, TileBag)
+						Player1, TileBag, Player1_TileClicked = findTileToExchange(Player1, TileBag)
 					else:
-						Player2, TileBag, Player2TileClicked = findTileToExchange(Player2, TileBag)
-					exchangeOccurring = True
+						Player2, TileBag, Player2_TileClicked = findTileToExchange(Player2, TileBag)
+					ExchangeOccurring = True
 
 				# if fillRack_button has been pressed
-				if event.ui_element == fillRack_button and TileBag.shuffleCount >= 2 and not gameOver:
+				if event.ui_element == fillRack_button and TileBag.shuffleCount >= 2 and not GameOver:
 					Player1.rack.fillRack(TileBag)
 					Player1.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon)
 					Player2.rack.fillRack(TileBag)
 					Player2.rack.fillRackGroup(TileBag.getLanguage(), TileBag.lexicon)
-					readyToStart = True
+					ReadyToStart = True
 					fillRack_button.disable()
 					PauseButton.enable()
 					if newGameLang is not None:
@@ -1112,16 +1114,16 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 					# Shuffle bag
 					TileBag.shuffleBag()
 
-				if event.ui_element == undoMove_button and not (gameOver or isPaused):
+				if event.ui_element == undoMove_button and not (GameOver or Paused):
 					# undo move
 					gameBoard, stack, Player1, Player2 = undoPlay(gameBoard, movesMade, Player1_Turn, Player1, Player2, TileBag.getLanguage())
-					blankTileClicked = False
+					BlankTileSelected = False
 					selectLetterToReplace.hide()
 
 				# if swapTurn_button has been pressed
-				if event.ui_element == swapTurn_button and TileBag.shuffleCount >= 2 and not (gameOver or isPaused):
-					if not exchangeOccurring:  # check board now
-						valid, wordsCreated = checkTurn(gameBoard, movesMade, TileBag.getLanguage(), TileBag.alphabet, firstTurn, wordsPlayed)
+				if event.ui_element == swapTurn_button and TileBag.shuffleCount >= 2 and not (GameOver or Paused):
+					if not ExchangeOccurring:  # check board now
+						valid, wordsCreated = checkTurn(gameBoard, movesMade, TileBag.getLanguage(), TileBag.alphabet, FirstTurn, wordsPlayed)
 						print(valid, wordsCreated, 'valid n wordsmade after checkTurn()')
 						print(wordsCreated, 'wordsCreated')
 						if valid:
@@ -1132,7 +1134,7 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 									score = calculateScore(wordsCreated, movesMade, TileBag.lexicon)
 									print(score, 'score calc\'ed')
 									Player1_Turn = not Player1_Turn
-									firstTurn = False
+									FirstTurn = False
 									if Player1_Turn:
 										if not TileBag.isEmpty():
 											if len(movesMade) == 7:
@@ -1145,8 +1147,8 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 											if Player2.rack.isEmpty():
 												scoreToSteal = Player1.rack.getTotalScore(TileBag.lexicon)
 												Player2.score.updateScore(scoreToSteal*2)
-												gameOver = True
-												scoreStolen = True
+												GameOver = True
+												ScoreStolen = True
 									else:
 										if not TileBag.isEmpty():
 											if len(movesMade) == 7:
@@ -1159,21 +1161,21 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 											if Player1.rack.isEmpty():
 												scoreToSteal = Player2.rack.getTotalScore(TileBag.lexicon)
 												Player1.score.updateScore(scoreToSteal*2)
-												gameOver = True
-												scoreStolen = True
-									invalidPlay = False
+												GameOver = True
+												ScoreStolen = True
+									InvalidPlay = False
 									print(movesMade)
 									wordsCreatedString = ','.join(wordsCreated[0])+','+','.join(wordsCreated[1])
 									if Player1_Turn:
-										addToGameHistory(gameID, moveNumber, Player2_ID, wordsCreatedString, score, exchangeOccurring, bool(len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0))
+										addToGameHistory(gameID, MoveNumber, Player2_ID, wordsCreatedString, score, ExchangeOccurring, bool(len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0))
 									else:
-										addToGameHistory(gameID, moveNumber, Player1_ID, wordsCreatedString, score, exchangeOccurring, bool(len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0))
-									if blankTilesInPlay == 0:
+										addToGameHistory(gameID, MoveNumber, Player1_ID, wordsCreatedString, score, ExchangeOccurring, bool(len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0))
+									if BlankTilesInPlay == 0:
 										selectLetterToReplace.kill()
 									else:
 										selectLetterToReplace.disable()
 										selectLetterToReplace.hide()
-									moveNumber += 1
+									MoveNumber += 1
 									movesMade = []
 									for i, row in enumerate(wordsCreated):
 										for word in row:
@@ -1182,23 +1184,23 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 
 									# for word in wordsCreated:
 									#     wordsPlayed.append(word)
-									consecutiveZeroPointPlays = 0
+									ConsecutiveZeroPointPlays = 0
 
 								else:
 									gameBoard, stack, Player1, Player2 = undoPlay(gameBoard, movesMade, Player1_Turn, Player1, Player2, TileBag.getLanguage())
-									invalidPlay = True
+									InvalidPlay = True
 									print('invalid turn')
 							else:
 								Player1_Turn = not Player1_Turn
 								if Player1_Turn:
-									addToGameHistory(gameID, moveNumber, Player2_ID, '', 0, exchangeOccurring, bool(len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0))
+									addToGameHistory(gameID, MoveNumber, Player2_ID, '', 0, ExchangeOccurring, bool(len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0))
 								else:
-									addToGameHistory(gameID, moveNumber, Player1_ID, '', 0, exchangeOccurring, bool(len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0))
-								consecutiveZeroPointPlays += 1
-								moveNumber += 1
+									addToGameHistory(gameID, MoveNumber, Player1_ID, '', 0, ExchangeOccurring, bool(len(wordsCreated[0]) == 0 and len(wordsCreated[1]) == 0))
+								ConsecutiveZeroPointPlays += 1
+								MoveNumber += 1
 						else:
 							gameBoard, stack, Player1, Player2 = undoPlay(gameBoard, movesMade, Player1_Turn, Player1, Player2, TileBag.getLanguage())
-							invalidPlay = True
+							InvalidPlay = True
 							print('invalid turn')
 					else:
 						Player1_Turn = not Player1_Turn
@@ -1208,20 +1210,20 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 								sprites[f'TILE{i+1}'].canBeClicked = True
 								sprites[f'TILE{i+1}'].updateImage(f"{TileBag.getLanguage()}Letters\\TILE_{Player2.rack.getContents()[i]}.png")
 							Player2.rack.updateSprites(sprites)
-							addToGameHistory(gameID, moveNumber, Player2_ID, '', 0, exchangeOccurring, False)
+							addToGameHistory(gameID, MoveNumber, Player2_ID, '', 0, ExchangeOccurring, False)
 						else:
 							sprites = Player1.rack.getSprites()
 							for i in range(7):
 								sprites[f'TILE{i + 1}'].canBeClicked = True
 								sprites[f'TILE{i + 1}'].updateImage(f"{TileBag.getLanguage()}Letters\\TILE_{Player1.rack.getContents()[i]}.png")
 							Player1.rack.updateSprites(sprites)
-							addToGameHistory(gameID, moveNumber, Player1_ID, '', 0, exchangeOccurring, False)
-						consecutiveZeroPointPlays += 1
-						moveNumber += 1
-						exchangeOccurring = False
+							addToGameHistory(gameID, MoveNumber, Player1_ID, '', 0, ExchangeOccurring, False)
+						ConsecutiveZeroPointPlays += 1
+						MoveNumber += 1
+						ExchangeOccurring = False
 
 				# If determineOrder_button has been pressed
-				if event.ui_element == determineOrder_button and not gameOver:
+				if event.ui_element == determineOrder_button and not GameOver:
 					Player1Tile = ''
 					Player2Tile = ''
 
@@ -1234,76 +1236,76 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 						print('swapped players')
 					else:
 						print('nuh uh on dat swapparooney)')
-					orderDetermined = True
+					OrderDetermined = True
 
 			# Used to decrement the timer
-			if event.type == pg.USEREVENT and readyToStart and not (gameOver or isPaused):
-				if Player1.timer.current_seconds != 0 and Player1_Turn and not gameOver:
-					Player1.timer.current_seconds -= 1
+			if event.type == pg.USEREVENT and ReadyToStart and not (GameOver or Paused):
+				if Player1.timer.currentSeconds != 0 and Player1_Turn and not GameOver:
+					Player1.timer.currentSeconds -= 1
 					if not Player1.timer.isOvertime:
 						Player1.timer.updateTimer()
 					else:
 						Player1.timer.updateOvertimeTimer()
-					if consecutiveZeroPointPlays == 6:
-						gameOver = True
-					if Player1.timer.current_seconds == 0 and not Player1.timer.isOvertime and not gameOver:
+					if ConsecutiveZeroPointPlays == 6:
+						GameOver = True
+					if Player1.timer.currentSeconds == 0 and not Player1.timer.isOvertime and not GameOver:
 						Player1.replaceTimer()
-					elif Player1.timer.current_seconds == 0 and Player1.timer.isOvertime:
-						gameOver = True
+					elif Player1.timer.currentSeconds == 0 and Player1.timer.isOvertime:
+						GameOver = True
 
-				if Player2.timer.current_seconds != 0 and not Player1_Turn and not gameOver:
-					Player2.timer.current_seconds -= 1
+				if Player2.timer.currentSeconds != 0 and not Player1_Turn and not GameOver:
+					Player2.timer.currentSeconds -= 1
 					if not Player2.timer.isOvertime:
 						Player2.timer.updateTimer()
 					else:
 						Player2.timer.updateOvertimeTimer()
-					if consecutiveZeroPointPlays == 6:
-						gameOver = True
-					if Player2.timer.current_seconds == 0 and not Player2.timer.isOvertime and not gameOver:
+					if ConsecutiveZeroPointPlays == 6:
+						GameOver = True
+					if Player2.timer.currentSeconds == 0 and not Player2.timer.isOvertime and not GameOver:
 						Player2.replaceTimer()
-					elif Player2.timer.current_seconds == 0 and Player2.timer.isOvertime:
-						gameOver = True
-			# if event.type == pg.USEREVENT and blankTileClicked:
-			if event.type == py_gui.UI_DROP_DOWN_MENU_CHANGED and not isPaused:
+					elif Player2.timer.currentSeconds == 0 and Player2.timer.isOvertime:
+						GameOver = True
+			# if event.type == pg.USEREVENT and BlankTileSelected:
+			if event.type == py_gui.UI_DROP_DOWN_MENU_CHANGED and not Paused:
 				if event.ui_element == selectLetterToReplace:
-					movesMade, blankTileClicked, gameBoard = swapBlankToLetter(movesMade, event.text, TileBag.getLanguage(), gameBoard)
-					blankTilesInPlay -= 1
-					blankTileClicked = False
-					mustSwapBlank = False
+					movesMade, BlankTileSelected, gameBoard = swapBlankToLetter(movesMade, event.text, TileBag.getLanguage(), gameBoard)
+					BlankTilesInPlay -= 1
+					BlankTileSelected = False
+					BlankTileDesignationRequired = False
 
-			if event.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0] and not (gameOver or isPaused):
+			if event.type == pg.MOUSEBUTTONDOWN and pg.mouse.get_pressed()[0] and not (GameOver or Paused):
 				mouse_pos = pg.mouse.get_pos()
 
-				if Player1_Turn and not Player1TileClicked and (584 <= mouse_pos[0] <= 1016) and (798 <= mouse_pos[1] <= 846) and not blankTileClicked:
+				if Player1_Turn and not Player1_TileClicked and (584 <= mouse_pos[0] <= 1016) and (798 <= mouse_pos[1] <= 846) and not BlankTileSelected:
 					print('a tile has been clicked on by player1')
-					Player1TileClicked, blankTileClicked = selectTile(Player1, mouse_pos)
-					print(Player1TileClicked, 'player1tileclicked', blankTileClicked, 'blanktileclicked - PLAYER1')
-					if blankTileClicked and not exchangeOccurring:
+					Player1_TileClicked, BlankTileSelected = selectTile(Player1, mouse_pos)
+					print(Player1_TileClicked, 'player1tileclicked', BlankTileSelected, 'blanktileclicked - PLAYER1')
+					if BlankTileSelected and not ExchangeOccurring:
 						selectLetterToReplace.show()
 						selectLetterToReplace.disable()
-				elif Player1_Turn and Player1TileClicked and (448 <= mouse_pos[0] <= 1152) and (58 <= mouse_pos[1] <= 762) and not exchangeOccurring:
+				elif Player1_Turn and Player1_TileClicked and (448 <= mouse_pos[0] <= 1152) and (58 <= mouse_pos[1] <= 762) and not ExchangeOccurring:
 					row, column = selectSquare(gameBoard, mouse_pos)
 					print(row, column, 'square selected - PLAYER1')
 					if not (row == -1 and column == -1):
-						Player1TileClicked, tileToMove, movesMade = getTileToMove(Player1, movesMade)
+						Player1_TileClicked, tileToMove, movesMade = getTileToMove(Player1, movesMade)
 						gameBoard, specialLocation, movesMade = moveTile(gameBoard, row, column, tileToMove, movesMade)
-						if blankTileClicked:
-							mustSwapBlank = True
-				elif not Player1_Turn and not Player2TileClicked and (584 <= mouse_pos[0] <= 1016) and (798 <= mouse_pos[1] <= 846) and not blankTileClicked:
+						if BlankTileSelected:
+							BlankTileDesignationRequired = True
+				elif not Player1_Turn and not Player2_TileClicked and (584 <= mouse_pos[0] <= 1016) and (798 <= mouse_pos[1] <= 846) and not BlankTileSelected:
 					print('a tile has been clicked on by player2')
-					Player2TileClicked, blankTileClicked = selectTile(Player2, mouse_pos)
-					print(Player2TileClicked, 'player1tileclicked', blankTileClicked, 'blanktileclicked - PLAYER2')
-					if blankTileClicked and not exchangeOccurring:
+					Player2_TileClicked, BlankTileSelected = selectTile(Player2, mouse_pos)
+					print(Player2_TileClicked, 'player1tileclicked', BlankTileSelected, 'blanktileclicked - PLAYER2')
+					if BlankTileSelected and not ExchangeOccurring:
 						selectLetterToReplace.show()
 						selectLetterToReplace.disable()
-				elif not Player1_Turn and Player2TileClicked and (448 <= mouse_pos[0] <= 1152) and (58 <= mouse_pos[1] <= 762) and not exchangeOccurring:
+				elif not Player1_Turn and Player2_TileClicked and (448 <= mouse_pos[0] <= 1152) and (58 <= mouse_pos[1] <= 762) and not ExchangeOccurring:
 					row, column = selectSquare(gameBoard, mouse_pos)
 					print(row, column, 'square selected - PLAYER2')
 					if not (row == -1 and column == -1):
-						Player2TileClicked, tileToMove, movesMade = getTileToMove(Player2, movesMade)
+						Player2_TileClicked, tileToMove, movesMade = getTileToMove(Player2, movesMade)
 						gameBoard, specialLocation, movesMade = moveTile(gameBoard, row, column, tileToMove, movesMade)
-						if blankTileClicked:
-							mustSwapBlank = True
+						if BlankTileSelected:
+							BlankTileDesignationRequired = True
 
 			# Processing anything pygame_gui related for the event
 			UIManager.process_events(event)
@@ -1318,12 +1320,12 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 		gameWindow.blit(TileBag.getImage(), (TileBag.getRectCoordinates()))
 
 		# Blit the rack and tiles for whose turn it is
-		if Player1_Turn and not gameOver:
+		if Player1_Turn and not GameOver:
 			gameWindow.blit(Player1.rack.getImage(), (Player1.rack.getRectCoordinates()))
 			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player1.name} - Player 1').text, (568, 875))
 			# Player1.rack.drawGroup(gameWindow)
 			Player1.rack.getGroup().draw(gameWindow)
-		elif not Player1_Turn and not gameOver:
+		elif not Player1_Turn and not GameOver:
 
 			gameWindow.blit(Player2.rack.getImage(), (Player2.rack.getRectCoordinates()))
 			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player2.name} - Player 2').text, (568, 875))
@@ -1337,14 +1339,14 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 		gameWindow.blit(Player2.timer.text, Player2.timer.getRectCoordinates())
 		gameWindow.blit(Player2.score.text, Player2.score.getRectCoordinates())
 
-		if revealOtherRack and Player1_Turn:
+		if RevealOtherRack and Player1_Turn:
 			gameWindow.blit(Player2.rack.getImage(), (1050, 775))
 			gameWindow.blit(ScrabbleItemTemplatesV2.Text((1068, 875), (200, 100), f'{Player2.name} - Player 2').text, (1068, 875))
 			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player1.name} - Player 1').text, (568, 875))
 			Player2.rack.getGroup().draw(gameWindow)
 			gameWindow.blit(Player1.rack.getImage(), Player1.rack.getRectCoordinates())
 			Player1.rack.getGroup().draw(gameWindow)
-		elif revealOtherRack and not Player1_Turn:
+		elif RevealOtherRack and not Player1_Turn:
 			gameWindow.blit(Player1.rack.getImage(), (1050, 775))
 			gameWindow.blit(ScrabbleItemTemplatesV2.Text((1068, 875), (200, 100), f'{Player1.name} - Player 1').text, (1068, 875))
 			gameWindow.blit(ScrabbleItemTemplatesV2.Text((568, 875), (200, 100), f'{Player2.name} - Player 2').text, (568, 875))
@@ -1353,11 +1355,14 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 			Player2.rack.getGroup().draw(gameWindow)
 
 		if getFileName.is_enabled == 1:
+			# ehe
 			gameWindow.blit(enterFileNameLabel.text, enterFileNameLabel.rect)
 		if getAdminPassword.is_enabled == 1:
+			# heh
 			gameWindow.blit(enterAdminPasswordLabel.text, enterAdminPasswordLabel.rect)
 
-		if invalidPlay:
+		if InvalidPlay:
+			# ehehe
 			gameWindow.blit(invalidPlayWarning.text, (invalidPlayWarning.rect.x, invalidPlayWarning.rect.y))
 
 		for row in gameBoard.squares:
@@ -1401,7 +1406,7 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 		'Rack': Player1.rack.getContents(),
 		'Score': Player1.score.getScore(),
 		'Timer': {
-			'Time Left': Player1.timer.current_seconds,
+			'Time Left': Player1.timer.currentSeconds,
 			'Overtime': Player1.timer.isOvertime
 		}
 
@@ -1412,32 +1417,32 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 		'Rack': Player2.rack.getContents(),
 		'Score': Player2.score.getScore(),
 		'Timer': {
-			'Time Left': Player2.timer.current_seconds,
+			'Time Left': Player2.timer.currentSeconds,
 			'Overtime': Player2.timer.isOvertime
 		}
 	}
 
 	flagsDict = {
 		"Player1_Turn": Player1_Turn,
-		"orderDetermined": orderDetermined,
-		"readyToStart": readyToStart,
-		"firstTurn": firstTurn,
-		"invalidPlay": invalidPlay,
-		"blankTilesInPlay": blankTilesInPlay,
-		"mustSwapBlank": mustSwapBlank,
-		"blankTileClicked": blankTileClicked,
-		"exchangeOccurring": exchangeOccurring,
-		"consecutiveZeroPointPlays": consecutiveZeroPointPlays,
-		"finalScoresAndPenaltiesApplied": finalScoresAndPenaltiesApplied,
-		"isPaused": isPaused,
-		"scoreStolen": scoreStolen,
-		"gameOver": gameOver,
-		"revealOtherRack": revealOtherRack,
-		"spritesAltered": spritesAltered,
-		"Player1TileClicked": Player1TileClicked,
-		"Player2TileClicked": Player2TileClicked,
+		"OrderDetermined": OrderDetermined,
+		"ReadyToStart": ReadyToStart,
+		"FirstTurn": FirstTurn,
+		"InvalidPlay": InvalidPlay,
+		"BlankTilesInPlay": BlankTilesInPlay,
+		"BlankTileDesignationRequired": BlankTileDesignationRequired,
+		"BlankTileSelected": BlankTileSelected,
+		"ExchangeOccurring": ExchangeOccurring,
+		"ConsecutiveZeroPointPlays": ConsecutiveZeroPointPlays,
+		"ScoresFinalised": ScoresFinalised,
+		"Paused": Paused,
+		"ScoreStolen": ScoreStolen,
+		"GameOver": GameOver,
+		"RevealOtherRack": RevealOtherRack,
+		"SpritesAltered": SpritesAltered,
+		"Player1_TileClicked": Player1_TileClicked,
+		"Player2_TileClicked": Player2_TileClicked,
 		"FileNameEntered": FileNameEntered,
-		"moveNumber": moveNumber
+		"MoveNumber": MoveNumber
 	}
 
 	gameDict = {
@@ -1448,17 +1453,18 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 		'Flags': flagsDict
 	}
 
-	if gameOver:
+	if GameOver:
 		if Player1Dict['Score'] > Player2Dict['Score']:
-			# bleh
+			# Assign Player 1 as winner
 			winner = f"Winner: {Player1Dict['Name']}"
 		elif Player2Dict['Score'] > Player1Dict['Score']:
-			# blah
+			# Assign Player 2 as winner
 			winner = f"Winner: {Player2Dict['Name']}"
 		else:
 			# update to reflect it's a tie
 			winner = 'Tie'
 	else:
+		# Keep winner empty since the game is ongoing
 		winner = ''
 
 	with open(os.path.join(os.path.dirname(__file__), f'../data\\{FileName}.json'), 'w') as f:
@@ -1475,6 +1481,7 @@ def createGameWindow(adminID='1', P1Name='', P2Name='', newGameLang=None, gameFi
 		# write updated info
 		json.dump(data, f, indent=4)
 
+	# Open connection to SQL database and update the game record
 	with sql.connect(os.path.join(os.path.dirname(__file__), '../ScrabbleTournamentGame.db')) as conn:
 		cursor = conn.cursor()
 		cursor.execute('''UPDATE Games SET fileName=?, result=? WHERE gameID=?''', (FileName, winner, gameID,))

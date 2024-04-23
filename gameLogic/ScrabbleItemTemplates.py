@@ -38,6 +38,8 @@ class Tile(pg.sprite.Sprite):
 
 	def transformImage(self, size):
 		self.image = pg.transform.scale(self.image, size)
+		old_rect = self.rect
+		self.rect = self.image.get_rect().move(old_rect.x, old_rect.y)
 
 	def getScore(self):
 		return self.score

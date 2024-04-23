@@ -161,6 +161,7 @@ with open(os.path.join(os.path.dirname(__file__), '../data/GameData.json')) as f
 
 # Creates a dropdown box to select a game file
 selectFileName = ctk.CTkComboBox(loadGame, values=gameFiles)
+selectFileName.configure(state='readonly')  # Prevents user from typing inside the dropdown menu
 selectFileName.place(x=43, y=10)
 
 

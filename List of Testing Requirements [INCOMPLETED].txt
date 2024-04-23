@@ -47,3 +47,35 @@ ViewRules_Window.py:
 8. ?
 
 mainGameV3.py (ScrabbleItemTemplatesV2.py):
+
+
+
+
+
+1. Ensure order is being determined properly
+2. Ensure tile bag is shuffled properly
+3. Ensure racks are filled properly at the beginning of the game
+4. Ensure the turns are validated properly and follow the scrabble rules. Inform the user of an invalid play. Includes tile placement and passing.
+5. Ensure board is being read properly to get all words (min. 2 chars, doesn't read from next row/column, splits words properly etc.)
+6. Ensure timer is being decremented/swapped properly
+7. Ensure scores are calculated and awarded properly
+8. Ensure flags are updated properly
+9. Ensure blank tiles are designated properly
+10. Ensure tiles can be recalled properly if the player wishes to undo their move
+11. Ensure tiles can be recalled properly if the play is invalid
+12. Ensure tiles can be selected and placed on the board properly
+13. Ensure correct player racks and name are shown
+14. Ensure both racks and names are shown when the game is over
+15. Ensure premium squares are shown and labelled properly
+16. Ensure game is over under correct conditions and end-game actions are triggered
+17. Ensure file name is correctly inputted
+18. Ensure game record is created after rack filling
+19. Ensure moves are logged properly and at the right time
+20. Ensure correct player IDs are fetched
+21. Ensure game is loaded in properly, including flags (should force pause after loading to prevent time loss during loading of the game)
+22. Ensure gameID is fetched properly, whether creating new record or loading in game file
+23. Ensure the file name and admin password are fetched and handled properly
+24. Inform user of errors regarding input of file name and admin password (need to put ctkmessagebox for invalid administrator password)
+25. Ensure player swapping is done correctly, and only occurs if required
+26. Ensure exchanging of tiles is handled properly
+27. Ensure post-game scores and penalties are calculated and awarded properly

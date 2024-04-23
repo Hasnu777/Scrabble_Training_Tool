@@ -224,8 +224,11 @@ class Rack(pg.sprite.Sprite):
 	# Removes a tile from the Rack object
 	def removeFromRack(self, position, tile):
 		self.__contents[position] = ''  # Removes the letter from the rack
+		print(self.__contents)
 		self.__sprites[f'TILE{position+1}'] = None  # Removes the tile object from the sprites dictionary
+		print(self.__sprites)
 		self.__group.remove(tile)  # Removes the tile object from the rack's group
+		print(self.__group)
 
 	# Takes the rack and creates Tile objects, to add to the rack's group
 	def fillRackGroup(self, language, lexicon):
@@ -240,8 +243,8 @@ class Rack(pg.sprite.Sprite):
 				# Creates and adds a Tile object to the sprites dictionary
 				self.__sprites[f'TILE{i+1}'] = Tile(filename, coordinates, letter, score)
 				print(f'added sprite number {i+1} to __sprites')
-				self.__group.add(self.__sprites[f'TILE{i + 1}'])  # Adds the Tile object to the rack's Group
-				print(f'added sprite number {i+1} to __group. If you find no errors, remove the extra comments')
+			self.__group.add(self.__sprites[f'TILE{i + 1}'])  # Adds the Tile object to the rack's Group
+			print(f'added sprite number {i+1} to __group. If you find no errors, remove the extra comments')
 			# if self.__sprites[f'TILE{i+1}'] is not None:  # Checks if a Tile object has been added to the sprite dictionary
 			# 	self.__group.add(self.__sprites[f'TILE{i+1}'])  # Adds the Tile object to the rack's Group
 
@@ -371,10 +374,10 @@ class Timer:
 		# Creates a font object, with Helvetica as the font
 		self.font = pg.font.Font(os.path.join(os.path.dirname(__file__),
 												'../assets\\Helvetica-Font\\Helvetica.ttf'), 24)
-		self.current_seconds = initialSeconds  # Sets the timer
+		self.currentSeconds = initialSeconds  # Sets the timer
 		# Renders the text to display the timer
-		self.text = self.font.render(f"Time Left: {self.current_seconds // 60:02}:{self.current_seconds % 60:02}",
-									True, 'white')
+		self.text = self.font.render(f"Time Left: {self.currentSeconds // 60:02}:{self.currentSeconds % 60:02}",
+									 True, 'white')
 		# Creates a rect object for the timer
 		self.__rect = self.text.get_rect(topleft=coordinates)
 		self.isOvertime = False  # Default overtime flag should be False, all players start with regular time.
@@ -389,13 +392,13 @@ class Timer:
 
 	# Updates the text displayed to represent the regular timer
 	def updateTimer(self):
-		self.text = self.font.render(f"Time Left: {self.current_seconds // 60:02}:{self.current_seconds % 60:02}",
-									True, 'white')
+		self.text = self.font.render(f"Time Left: {self.currentSeconds // 60:02}:{self.currentSeconds % 60:02}",
+									 True, 'white')
 
 	# Updates the text displayed to represent the overtime timer
 	def updateOvertimeTimer(self):
-		self.text = self.font.render(f"Time Left (Overtime): {self.current_seconds // 60:02}:\
-									{self.current_seconds % 60:02}", True, 'white')
+		self.text = self.font.render(f"Time Left (Overtime): {self.currentSeconds // 60:02}:\
+									{self.currentSeconds % 60:02}", True, 'white')
 
 
 # Used to create 2 Score objects, one per player
