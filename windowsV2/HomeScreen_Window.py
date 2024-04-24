@@ -70,7 +70,7 @@ def getP1Username():
 
 
 # Creates entry box to enter Player 2's username
-P2Username = ctk.CTkEntry(newGame, placeholder_text="Player2")
+P2Username = ctk.CTkEntry(newGame, placeholder_text="Player 2")
 P2Username.place(x=43, y=33)
 
 

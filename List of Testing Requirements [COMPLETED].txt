@@ -49,34 +49,34 @@ ViewRules_Window.py:
 
 mainGameV4.py:
 
-1. Check if objects are created and updated properly when starting a new game: empty game board (except for premium squares), full tile bag, empty player racks
-2. Check if objects are created and updated properly when loading a game from a file
-3. Check if Square objects are being created properly for the premium squares on the scrabble board
-4. Check if correct player IDs are fetched
-5. Check if correct game ID is fetched when loading a game
-6. Check if player order is determined correctly
-7. Check player information is swapped properly if the player order swaps
-8. Check that tile bag is shuffled properly
-9. Check that player racks are filled properly
-10. Check that a game record is properly created when starting a new game
-11. Check that the correct game ID is fetched when starting a new game
-12. Check if the user is able to select the correct tile from their rack
-13. Check if the user is able to place the correct tile in their chosen position on the board
-14. Check if the user is able to exchange a tile properly
-15. Check if tournament rules for exchanging tiles are followed (or emulated)
-16. Check if a Tile object representing a blank tile represents the letter designation correctly
-17. Check if a player is able to recall their tiles correctly
-18. Check if the merge sort function works as intended
-19. Ensure the CheckIfSublist function works as intended
-20. Check if tile placement is checked and validated properly to determine a valid play
-21. Check if words are correctly fetched when scanning the board
-21. Check if the CheckWords function correctly determines if a word is in the word list
-22. Check if only newly created words are being used to calculate the score to award
-23. Check if the score is calculated properly (after accounting for blanks and premium square multipliers)
-24. Check if the player's move (tile placement, exchange, pass) is recorded properly to the database
-25. Check if scores are updated properly after a game is finished, including "score stealing" and penalties
-26. Check if the file name to save a game to is correctly retrieved, and meets the length requirement
-27. Check if the administrator password entered to close the window is correctly matched with the database
-28. Check if the NASPA rules are followed/emulated properly
-29. Check if the game is saved properly, by holding all the details of the game board, tile bag, players, and game
-30. Check if the program properly closes after the game window is closed
+1. Check if objects are created and updated properly when starting a new game: empty game board (except for premium squares), full tile bag, empty player racks ✔
+2. Check if objects are created and updated properly when loading a game from a file ✔
+3. Check if Square objects are being created properly for the premium squares on the scrabble board ✔
+4. Check if correct player IDs are fetched ✔
+5. Check if correct game ID is fetched when loading a game ✔
+6. Check if player order is determined correctly ✔
+7. Check player information is swapped properly if the player order swaps ✔
+8. Check that tile bag is shuffled properly ✔
+9. Check that player racks are filled properly ✔
+10. Check that a game record is properly created when starting a new game ✔
+11. Check that the correct game ID is fetched when starting a new game ✔
+12. Check if the user is able to select the correct tile from their rack ✔
+13. Check if the user is able to place the correct tile in their chosen position on the board ✔
+14. Check if the user is able to exchange a tile properly ✔
+15. Check if tournament rules for exchanging tiles are followed (or emulated) ✔
+16. Check if a Tile object representing a blank tile represents the letter designation correctly ✔
+17. Check if a player is able to recall their tiles correctly ✔
+18. Check if the merge sort function works as intended ✔
+19. Ensure the CheckIfSublist function works as intended ✔
+20. Check if tile placement is checked and validated properly to determine a valid play ✔
+21. Check if words are correctly fetched when scanning the board ✔
+21. Check if the CheckWords function correctly determines if a word is in the word list ✔
+22. Check if only newly created words are being used to calculate the score to award ✔
+23. Check if the score is calculated properly (after accounting for blanks and premium square multipliers) ✔
+24. Check if the player's move (tile placement, exchange, pass) is recorded properly to the database ✔
+25. Check if scores are updated properly after a game is finished, including "score stealing" and penalties ✔
+26. Check if the file name to save a game to is correctly retrieved, and meets the length requirement ✔
+27. Check if the administrator password entered to close the window is correctly matched with the database ✔
+28. Check if the NASPA rules are followed/emulated properly (need to collate list of these, and explain in doc if met or not & why)
+29. Check if the game is saved properly, by holding all the details of the game board, tile bag, players, and game ✔
+30. Check if the program properly closes after the game window is closed ✔
