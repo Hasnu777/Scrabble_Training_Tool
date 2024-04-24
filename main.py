@@ -1,5 +1,5 @@
 import sqlite3
-from gameLogic import mainGameV3, mainGameV4
+from GameFiles import MainGame
 from windowsV2 import HomeScreen_Window
 from windowsV2 import LogIn_Window
 
@@ -106,12 +106,12 @@ if adminID is not None:
 	# Checks if a language has been selected from HomeScreen_Window, as this indicates a new game is starting
 	if HomeScreen_Window.language:
 		# Starts game instance, passing in the language selected to indicate a new game is being started
-		mainGameV4.CreateGameWindow(adminID, HomeScreen_Window.Player1, HomeScreen_Window.Player2,
+		MainGame.CreateGameWindow(adminID, HomeScreen_Window.Player1, HomeScreen_Window.Player2,
 									NewGameLang=HomeScreen_Window.language)
 	# Checks if a file has been selected from HomeScreen_Window, as this indicates a game is being loaded
 	elif HomeScreen_Window.Filename:
 		# Starts game instance, passing in the file selected to indicate a game is being loaded
-		mainGameV4.CreateGameWindow(adminID, HomeScreen_Window.Player1, HomeScreen_Window.Player2,
+		MainGame.CreateGameWindow(adminID, HomeScreen_Window.Player1, HomeScreen_Window.Player2,
 									FileToLoad=HomeScreen_Window.Filename)
 # No else statement because it is implied that if neither exist, HomeScreen_Window was closed without doing anything.
 # So, the program is over.

@@ -36,9 +36,6 @@ def OpenRules(RulesOptions):
 		webbrowser.open(f'{rules[option]}')  # Opens the rules in the web browser
 	except KeyError:
 		CTkMessagebox(title='Input Error', message='Invalid Selection', width=160, height=80, sound=True)
-	# optionReversed = option[::-1]
-	# option = option[:option.index(' ')] + optionReversed[:optionReversed.index(' ')][::-1]  # Removing the ' - ' from the option selected
-	# webbrowser.open(f'{rules[option]}')  # Opens the rules in the web browser
 
 
 # Creates the rules window

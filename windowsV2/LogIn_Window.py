@@ -57,18 +57,21 @@ def CreateUser():
 	# Checking if the username entered contains characters not from A-Z, a-z, 0-9
 	if not (usernameEntered.isalnum() or usernameEntered.isalpha()):
 		# Message box created to inform the user of the invalid input
-		CTkMessagebox(title='Input Error', message='Invalid username provided for user creation.', width=160, height=80, sound=True)
+		CTkMessagebox(title='Input Error', message='Invalid username provided for user creation.', width=160, height=80,
+					sound=True)
 		validUsername = False
 	# Minimum username length required, so that all administrator usernames are long enough to be recognisable
 	elif len(usernameEntered) < 6:
 		# Message box created to inform the user of the invalid input
-		CTkMessagebox(title='Input Error', message='Username must be at least 6 characters in length.', width=160, height=80, sound=True)
+		CTkMessagebox(title='Input Error', message='Username must be at least 6 characters in length.', width=160,
+					height=80, sound=True)
 		validUsername = False
 	else:  # If the username meets the requirements
 		validUsername = True
 
 	if len(passwordEntered) < 8:  # Minimum password length makes it harder for players to penetrate the system
-		CTkMessagebox(title='Input Error', message='Password must be at least 8 characters in length.', width=160, height=80, sound=True)
+		CTkMessagebox(title='Input Error', message='Password must be at least 8 characters in length.', width=160,
+					height=80, sound=True)
 		validPassword = False
 	else:  # If the password meets the length requirement
 		validPassword = True
@@ -83,12 +86,11 @@ def CreateUser():
 					(usernameEntered, passwordEntered,))
 				cursor.execute('''SELECT adminID FROM Administrators WHERE username=?''',
 					(usernameEntered,))  # Retrieves the adminID of the newly created administrator profile
-				CTkMessagebox(title='Success!', message='Profile Successfully Created.', width=160, height=80, sound=True)
-				# global adminID
-				# adminID = cursor.fetchone()[0]
-				#
+				CTkMessagebox(title='Success!', message='Profile Successfully Created', width=160, height=80,
+							sound=True)
 		except sql.IntegrityError:  # In case a record with the username already exists
-			CTkMessagebox(title='Error!', message='Username taken.', width=160, height=80, sound=True)  # Informs the user that the username is taken
+			# Informs the user that the username is taken
+			CTkMessagebox(title='Error!', message='Username taken.', width=160, height=80, sound=True)
 
 
 # Button that executes the CreateUser() subroutine
@@ -107,7 +109,8 @@ def LogIn():
 		itemsRetrieved = cursor.fetchone()  # Retrieves what was fetched from the SQL query
 		if not itemsRetrieved:  # Checks if there was no adminID pulled out (itemsRetrieved would be None in that case)
 			# Informs the user that the details provided are invalid
-			CTkMessagebox(title='Error!', message='Incorrect username or password given.', width=160, height=80, sound=True)
+			CTkMessagebox(title='Error!', message='Incorrect username or password given.', width=160, height=80,
+						sound=True)
 		else:
 			global LoggedIn, adminID
 			LoggedIn = True
