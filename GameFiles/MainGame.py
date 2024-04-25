@@ -871,7 +871,7 @@ def CreateGameWindow(adminID='1', P1Name='', P2Name='', NewGameLang=None, FileTo
 
 	# Flags and Important Variables
 	Flags = [True, False, False, True, False, 2, False, False, False, 0, False, False, False, False, False, False,
-			False, False, False, 1]
+			False, False, 1]
 
 	if NewGameLang:
 		GameBoard, Player1, Player2, TileBag = StartNewGame(NewGameLang, P1Name, P2Name)
@@ -916,11 +916,11 @@ def CreateGameWindow(adminID='1', P1Name='', P2Name='', NewGameLang=None, FileTo
 	ScoreStolen = Flags[12]
 	GameOver = Flags[13]
 	RevealOtherRack = Flags[14]
-	SpritesAltered = Flags[15]
-	Player1_TileClicked = Flags[16]
-	Player2_TileClicked = Flags[17]
-	FileNameEntered = Flags[18]
-	MoveNumber = Flags[19]
+	SpritesAltered = False
+	Player1_TileClicked = Flags[15]
+	Player2_TileClicked = Flags[16]
+	FileNameEntered = Flags[17]
+	MoveNumber = Flags[18]
 	FileName = ''
 
 	# BUTTONS
@@ -1747,7 +1747,6 @@ def CreateGameWindow(adminID='1', P1Name='', P2Name='', NewGameLang=None, FileTo
 		"ScoreStolen": ScoreStolen,
 		"GameOver": GameOver,
 		"RevealOtherRack": RevealOtherRack,
-		"SpritesAltered": SpritesAltered,
 		"Player1_TileClicked": Player1_TileClicked,
 		"Player2_TileClicked": Player2_TileClicked,
 		"FileNameEntered": FileNameEntered,
