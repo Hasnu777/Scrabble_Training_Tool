@@ -970,7 +970,7 @@ def CreateGameWindow(adminID='1', P1Name='', P2Name='', NewGameLang=None, FileTo
 
 				# Checking for button clicks
 				if event.type == pg_gui.UI_BUTTON_PRESSED:
-					if event.ui_element == GetAdminPassword_Button:
+					if event.ui_element == GetAdminPassword_Button and FileNameEntered:
 						# Checking if the entered password matches the password of the person moderating the game, or
 						# the top boss of the tournament
 						correctPasswordEntered = VerifyAdminPassword(AdminPassword_Entry.get_text(), adminID)
