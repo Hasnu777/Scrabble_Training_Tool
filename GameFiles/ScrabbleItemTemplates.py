@@ -69,10 +69,6 @@ class Tile(pg.sprite.Sprite):
 		self.isClicked = False
 		self.canBeClicked = True
 
-	def __repr__(self):
-		print(self.__letter, self.__score, self.isClicked, self.canBeClicked)
-		return ''
-
 	# Moves the rect to a new location
 	def updateRect(self, coordinates):
 		self.rect = self.image.get_rect().move(coordinates[0], coordinates[1])
@@ -123,11 +119,6 @@ class Board(pg.sprite.Sprite):
 		# Creates a 2D array of Square objects, to make the board squares clickable and to represent premium squares
 		self.squares = [[Square(((448+j*48), (58+i*48)), text=' ') for j in range(15)] for i in range(15)]
 		self.__group = pg.sprite.Group()  # Used to display Sprite objects that represent tiles/squares on the board.
-
-	def __repr__(self):
-		print(self.__board)
-		print([[repr(tileOrSquare) for tileOrSquare in self.__board[i]] for i in range(15)])
-		return ''
 
 	# Move the rect to a new location
 	def updateRect(self, coordinates):
@@ -191,14 +182,6 @@ class Rack(pg.sprite.Sprite):
 			}
 		self.__group = pg.sprite.Group()  # Used to display Tile objects that represent letters in the rack
 
-	def __repr__(self):
-		spriteContents = []
-		for i, tile in enumerate(list(self.__sprites.values())):
-			if tile is not None:
-				spriteContents.append(tile.getLetter())
-
-		print(self.__contents, spriteContents)
-		return ''
 
 	# Moves the rect to the specified location
 	def updateRect(self, coordinates):
@@ -361,14 +344,6 @@ class TileBag(pg.sprite.Sprite):
 				self.alphabet = list(EnglishLetters.keys())  # Gets a list of all the English Scrabble letters
 				self.lexicon = EnglishLetters
 
-	def __repr__(self):
-		print(self.__language, 'language')
-		print(self.shuffleCount, 'shuffle count')
-		print(self.bag, 'tile bag')
-		print(self.alphabet, 'alphabet')
-		print(self.lexicon, 'letter-score-quantity dictionary')
-		return ''
-
 	# Moves the rect to the specified location
 	def updateRect(self, coordinates):
 		self.__rect.move(coordinates[0], coordinates[1])
@@ -416,13 +391,6 @@ class Player:
 		self.score = Score(scoreCoordinates)  # Creates a Score object for the player
 		self.timer = Timer(REGULAR_TIME, timerCoordinates)  # Creates a Timer object for the player
 
-	def __repr__(self):
-		print(self.name)
-		repr(self.rack)
-		repr(self.score)
-		repr(self.timer)
-		return ''
-
 	# Replaces the regular timer with an overtime timer and updates the isOvertime flag
 	def replaceTimer(self):
 		# Creates a new Timer object and takes the rect coordinates of the old timer, to use for the new timer.
@@ -443,10 +411,6 @@ class Timer:
 		# Creates a rect object for the timer
 		self.__rect = self.text.get_rect(topleft=coordinates)
 		self.isOvertime = False  # Default overtime flag should be False, all players start with regular time.
-
-	def __repr__(self):
-		print(self.currentSeconds, 'time left')
-		return ''
 
 	# Moves the rect to the specified coordinates
 	def updateRect(self, coordinates):
@@ -479,9 +443,6 @@ class Score:
 		# Creates a rect object for the score
 		self.__rect = self.text.get_rect(topleft=coordinates)
 
-	def __repr__(self):
-		print(self.__score, 'score')
-		return ''
 
 	# Moves the rect to the specified coordinates
 	def updateRect(self, coordinates):
@@ -531,9 +492,6 @@ class Square:
 		# Gets the rect of the text
 		self.__rect = pg.Rect((coordinates[0], coordinates[1]), (32, 32))
 		self.squareType = text  # Gets the text to display for the square, to show the type of premium square
-
-	def __repr__(self):
-		return self.squareType
 
 	# Returns the rect
 	def getSquareRect(self):

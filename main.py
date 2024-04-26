@@ -95,8 +95,6 @@ createTable(createAdminGamesTable)
 createTable(createPlayerGamesTable)
 createTable(createGameHistoryTable)
 
-# TODO Create separate sql databases. One to hold above tables, another to hold word lists.
-
 adminID = LogIn_Window.run()  # Retrieving adminID from when the administrator/member of staff logs in
 print(adminID, 'adminID fetched from LogIn_Window.py')
 language = 'English'  # Default language in case of an unknown error occurring in HomeScreen_Window
